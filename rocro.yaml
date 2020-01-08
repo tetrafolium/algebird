@@ -25,8 +25,8 @@ inspecode:
             num-issues: 180
 
     scalastyle:
-        ignore:
-          - algeburd-core/src/
-          - algebird-test/src/
+        #ignore:
+        #  - algebird-core/src/
+        #  - algebird-test/src/
         thresholds:
-            num-issues: 123
+            num-issues: 999

@@ -22,11 +22,11 @@ inspecode:
         machine:
             cpu: 1.0
         thresholds:
-            num-issues: 999
+            num-issues: 180
 
     scalastyle:
         ignore:
           - algeburd-core/src/
           - algebird-test/src/
         thresholds:
-            num-issues: 999
+            num-issues: 123

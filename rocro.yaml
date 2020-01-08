@@ -1,16 +1,16 @@
 inspecode:
 
-    cpd:
-        thresholds:
-            num-issues: 999
-
-    jscpd:
-        thresholds:
-            num-issues: 999
+    #cpd:
+    #    thresholds:
+    #        num-issues: 722
 
     grep:
         thresholds:
-            num-issues: 999
+            num-issues: 20
+
+    jscpd:
+        thresholds:
+            num-issues: 42
 
     misspell:
         auto-fix: true
@@ -19,6 +19,8 @@ inspecode:
 
     scalafmt:
         auto-fix: true
+        machine:
+            cpu: 1.0
         thresholds:
             num-issues: 999
 

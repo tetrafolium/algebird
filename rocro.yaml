@@ -1,8 +1,10 @@
 inspecode:
 
-    #cpd:
-    #    thresholds:
-    #        num-issues: 722
+    cpd:
+        options:
+            --minimum-tokens: 50
+        thresholds:
+            num-issues: 722
 
     grep:
         thresholds:
@@ -20,13 +22,11 @@ inspecode:
     scalafmt:
         auto-fix: true
         machine:
-            cpu: 1.0
+            cpu: 0.5
         thresholds:
             num-issues: 180
 
     scalastyle:
-        #ignore:
-        #  - algebird-core/src/
-        #  - algebird-test/src/
+        #config-file: scalastyle-config.xml     # (auto-detect)
         thresholds:
-            num-issues: 999
+            num-issues: 185

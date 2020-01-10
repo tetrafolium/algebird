@@ -2,7 +2,7 @@ inspecode:
 
     cpd:
         options:
-            --minimum-tokens: 500
+            --minimum-tokens: 100
         thresholds:
             num-issues: 722
 

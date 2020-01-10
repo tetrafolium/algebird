@@ -1,10 +1,10 @@
 inspecode:
 
-    cpd:
-        options:
-            --minimum-tokens: 100
-        thresholds:
-            num-issues: 722
+    #cpd:
+    #    options:
+    #        --minimum-tokens: 100
+    #    thresholds:
+    #        num-issues: 722
 
     grep:
         thresholds:

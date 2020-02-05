@@ -18,10 +18,11 @@ inspecode:
         thresholds: { num-issues: 5 }
 
     scalafmt:
+        #config-file: .scalafmt.conf         # (auto-detect)
         auto-fix: true
         machine: { cpu: 0.75 }
         thresholds: { num-issues: 180 }
 
     scalastyle:
-        #config-file: scalastyle-config.xml     # (auto-detect)
+        #config-file: scalastyle-config.xml  # (auto-detect)
         thresholds: { num-issues: 185 }

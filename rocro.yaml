@@ -3,30 +3,23 @@ inspecode:
     #cpd:
     #    options:
     #        --minimum-tokens: 100
-    #    thresholds:
-    #        num-issues: 722
+    #    thresholds: { num-issues: 722 }
 
     grep:
-        thresholds:
-            num-issues: 20
+        thresholds: { num-issues: 20 }
 
     jscpd:
-        thresholds:
-            num-issues: 42
+        thresholds: { num-issues: 42 }
 
     misspell:
         auto-fix: true
-        thresholds:
-            num-issues: 5
+        thresholds: { num-issues: 5 }
 
     scalafmt:
         auto-fix: true
-        machine:
-            cpu: 0.75
-        thresholds:
-            num-issues: 180
+        machine: { cpu: 0.75 }
+        thresholds: { num-issues: 180 }
 
     scalastyle:
         #config-file: scalastyle-config.xml     # (auto-detect)
-        thresholds:
-            num-issues: 185
+        thresholds: { num-issues: 185 }

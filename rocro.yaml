@@ -9,7 +9,9 @@ inspecode:
         thresholds: { num-issues: 20 }
 
     jscpd:
-        thresholds: { num-issues: 42 }
+        ignore:
+          - '**/test/'  # 24 issues
+        thresholds: { num-issues: 18 }
 
     misspell:
         auto-fix: true

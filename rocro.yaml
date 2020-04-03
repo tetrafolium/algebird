@@ -5,6 +5,9 @@ inspecode:
     #        --minimum-tokens: 100
     #    thresholds: { num-issues: 722 }
 
+    fossology:
+        thresholds: { num-issues: 999 }
+
     grep:
         thresholds: { num-issues: 20 }
 

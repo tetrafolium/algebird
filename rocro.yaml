@@ -33,3 +33,15 @@ inspecode:
       thresholds: { num-issues: 185 }
 
   tasks:
+
+    - name: null-task
+      type: docker-build
+      dockerfile: ".rocro/null-task.Dockerfile"
+      #pre-tasks: <string|list>
+      #artifacts: <mapping|list>
+      #machine: { cpu: 1.0 }
+      #options:
+      #  --build-arg:
+      #  - XXX=aaa
+      #  - YYY=bbb
+      thresholds: { num-issues: 999 }

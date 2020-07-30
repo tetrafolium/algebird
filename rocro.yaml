@@ -38,9 +38,6 @@ inspecode:
     - name: test-1
       type: docker-build
       dockerfile: ".rocro/test-1.Dockerfile"
-      docker-run:
-      - name: image-name
-        machine: { cpu: 0.75 }
       #pre-tasks:
       #- other-task-name1
       #- other-task-name2
@@ -53,10 +50,10 @@ inspecode:
       #  --build-arg:
       #    XXX: aaa
       #    YYY: bbb
-      reports:
-      - from: production
-        path: ".rocro/task-results/saas-production/test-1.sarif"
-      - from: staging
-        path: ".rocro/task-results/saas-staging/test-1.sarif"
+      #reports:
+      #- from: production
+      #  path: ".rocro/task-results/saas-production/test-1.sarif"
+      #- from: staging
+      #  path: ".rocro/task-results/saas-staging/test-1.sarif"
       machine: { cpu: 1.25 }
       thresholds: { num-issues: 999 }

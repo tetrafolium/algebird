@@ -34,14 +34,29 @@ inspecode:
 
   tasks:
 
-    - name: null-task
+    ### cf. tractrix/codelift#1890
+    - name: test-1
       type: docker-build
-      dockerfile: ".rocro/null-task.Dockerfile"
-      #pre-tasks: <string|list>
-      #artifacts: <mapping|list>
-      #machine: { cpu: 1.0 }
+      dockerfile: ".rocro/test-1.Dockerfile"
+      docker-run:
+      - name: image-name
+        machine: { cpu: 0.75 }
+      #pre-tasks:
+      #- other-task-name1
+      #- other-task-name2
+      #- ...
+      #artifacts:
+      #- from: stage-name
+      #  path: path/to/artifact
+      #- ...
       #options:
       #  --build-arg:
-      #  - XXX=aaa
-      #  - YYY=bbb
+      #    XXX: aaa
+      #    YYY: bbb
+      reports:
+      - from: production
+        path: ".rocro/task-results/saas-production/test-1.sarif"
+      - from: staging
+        path: ".rocro/task-results/saas-staging/test-1.sarif"
+      machine: { cpu: 1.25 }
       thresholds: { num-issues: 999 }

@@ -1,19 +1,21 @@
 package com.twitter.algebird.macros
 
-import scala.language.experimental.{ macros => sMacros }
+import scala.language.experimental.{macros => sMacros}
 import scala.reflect.macros.Context
 import scala.reflect.runtime.universe._
 
 import com.twitter.algebird._
 
 object SemigroupMacro {
-  def caseClassSemigroup[T](c: Context)(implicit T: c.WeakTypeTag[T]): c.Expr[Semigroup[T]] = {
+  def caseClassSemigroup[T](
+      c: Context
+  )(implicit T: c.WeakTypeTag[T]): c.Expr[Semigroup[T]] = {
     import c.universe._
 
     ensureCaseClass(c)
 
-    val implicitSemigroups = getParams(c).map {
-      param => q"implicitly[_root_.com.twitter.algebird.Semigroup[${param.returnType}]]"
+    val implicitSemigroups = getParams(c).map { param =>
+      q"implicitly[_root_.com.twitter.algebird.Semigroup[${param.returnType}]]"
     }
 
     val res = q"""
@@ -25,7 +27,9 @@ object SemigroupMacro {
     c.Expr[Semigroup[T]](res)
   }
 
-  def plus[T](c: Context)(implicitInstances: List[c.Tree])(implicit T: c.WeakTypeTag[T]): c.Tree = {
+  def plus[T](
+      c: Context
+  )(implicitInstances: List[c.Tree])(implicit T: c.WeakTypeTag[T]): c.Tree = {
     import c.universe._
 
     val companion = getCompanionObject(c)
@@ -36,13 +40,16 @@ object SemigroupMacro {
     q"def plus(l: $T, r: $T): $T = $companion.apply(..$plusList)"
   }
 
-  def sumOption[T](c: Context)(implicitInstances: List[c.Tree])(implicit T: c.WeakTypeTag[T]): c.Tree = {
+  def sumOption[T](
+      c: Context
+  )(implicitInstances: List[c.Tree])(implicit T: c.WeakTypeTag[T]): c.Tree = {
     import c.universe._
 
     val params = getParams(c)
     val companion = getCompanionObject(c)
 
-    val sumOptionsGetted: List[c.Tree] = params.map(param => q"${param.name.asInstanceOf[TermName]}.get")
+    val sumOptionsGetted: List[c.Tree] =
+      params.map(param => q"${param.name.asInstanceOf[TermName]}.get")
     val getSumOptions = params.zip(implicitInstances).map {
       case (param, instance) =>
         q"val ${param.name.asInstanceOf[TermName]} = $instance.sumOption(items.iterator.map(_.$param))"

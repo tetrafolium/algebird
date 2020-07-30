@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
@@ -21,10 +21,11 @@ import java.nio.ByteBuffer
 /** A super lightweight (hopefully) version of BitSet */
 case class BitSetLite(in: Array[Byte]) {
   def contains(x: Int): Boolean = {
+
     /**
-     * Pretend 'in' is little endian so that the bitstring b0b1b2b3 is such that if b0 == 1, then
-     *  0 is in the bitset, if b1 == 1, then 1 is in the bitset.
-     */
+      * Pretend 'in' is little endian so that the bitstring b0b1b2b3 is such that if b0 == 1, then
+      *  0 is in the bitset, if b1 == 1, then 1 is in the bitset.
+      */
     val arrayIdx = x / 8
     val remainder = x % 8
     ((in(arrayIdx) >> (7 - remainder)) & 1) == 1
@@ -32,19 +33,23 @@ case class BitSetLite(in: Array[Byte]) {
 }
 
 /**
- * Implementation of the HyperLogLog approximate counting as a Monoid
- * @link http://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf
- *
- * HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm
- * Philippe Flajolet and Éric Fusy and Olivier Gandouet and Frédéric Meunier
- */
+  * Implementation of the HyperLogLog approximate counting as a Monoid
+  * @link http://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf
+  *
+  * HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm
+  * Philippe Flajolet and Éric Fusy and Olivier Gandouet and Frédéric Meunier
+  */
 object HyperLogLog {
 
   /* Size of the hash in bits */
   val hashSize = 128
 
   private[algebird] val negativePowersOfTwo: Array[Double] =
-    0.to(hashSize).map{ i => math.pow(2.0, -i) }.toArray
+    0.to(hashSize)
+      .map { i =>
+        math.pow(2.0, -i)
+      }
+      .toArray
 
   def hash(input: Array[Byte]): Array[Byte] = {
     val (l0, l1) = Hash128.arrayByteHash.hash(input)
@@ -80,9 +85,9 @@ object HyperLogLog {
   def twopow(i: Int): Double = java.lang.Math.pow(2.0, i)
 
   /**
-   * the value 'j' is equal to <w_0, w_1 ... w_(bits-1)>
-   *  TODO: We could read in a byte at a time.
-   */
+    * the value 'j' is equal to <w_0, w_1 ... w_(bits-1)>
+    *  TODO: We could read in a byte at a time.
+    */
   def j(bsl: BitSetLite, bits: Int): Int = {
     @annotation.tailrec
     def loop(pos: Int, accum: Int): Int = {
@@ -98,9 +103,9 @@ object HyperLogLog {
   }
 
   /**
-   * The value 'w' is equal to <w_bits ... w_n>. The function rho counts the number of leading
-   *  zeroes in 'w'. We can calculate rho(w) at once with the method rhoW.
-   */
+    * The value 'w' is equal to <w_bits ... w_n>. The function rho counts the number of leading
+    *  zeroes in 'w'. We can calculate rho(w) at once with the method rhoW.
+    */
   def rhoW(bsl: BitSetLite, bits: Int): Byte = {
     @annotation.tailrec
     def loop(pos: Int, zeros: Int): Int =
@@ -110,13 +115,13 @@ object HyperLogLog {
   }
 
   /**
-   * We are computing j and \rho(w) from the paper,
-   *  sorry for the name, but it allows someone to compare to the paper extremely low probability
-   *  rhow (position of the leftmost one bit) is > 127, so we use a Byte to store it
-   *  Given a hash <w_0, w_1, w_2 ... w_n> the value 'j' is equal to <w_0, w_1 ... w_(bits-1)> and
-   *  the value 'w' is equal to <w_bits ... w_n>. The function rho counts the number of leading
-   *  zeroes in 'w'. We can calculate rho(w) at once with the method rhoW.
-   */
+    * We are computing j and \rho(w) from the paper,
+    *  sorry for the name, but it allows someone to compare to the paper extremely low probability
+    *  rhow (position of the leftmost one bit) is > 127, so we use a Byte to store it
+    *  Given a hash <w_0, w_1, w_2 ... w_n> the value 'j' is equal to <w_0, w_1 ... w_(bits-1)> and
+    *  the value 'w' is equal to <w_bits ... w_n>. The function rho counts the number of leading
+    *  zeroes in 'w'. We can calculate rho(w) at once with the method rhoW.
+    */
   def jRhoW(in: Array[Byte], bits: Int): (Int, Byte) = {
     val onBits = BitSetLite(in)
     (j(onBits, bits), rhoW(onBits, bits))
@@ -175,7 +180,8 @@ object HyperLogLog {
       val j = jLen match {
         case 1 => (bb.get.toInt & 0xff)
         case 2 => (bb.get.toInt & 0xff) + ((bb.get.toInt & 0xff) << 8)
-        case 3 => (bb.get.toInt & 0xff) + ((bb.get.toInt & 0xff) << 8) + ((bb.get.toInt & 0xff) << 16)
+        case 3 =>
+          (bb.get.toInt & 0xff) + ((bb.get.toInt & 0xff) << 8) + ((bb.get.toInt & 0xff) << 16)
       }
       val rhow = bb.get
       j -> Max(rhow)
@@ -193,42 +199,45 @@ object HyperLogLog {
   }
 
   /**
-   * The true error is distributed like a Gaussian with
-   * this standard deviation.
-   * let m = 2^bits. The size of the HLL is m bytes.
-   *
-   * bits | size | error
-   *   9       512     0.0460
-   *  10      1024    0.0325
-   *  11      2048    0.0230
-   *  12      4096    0.0163
-   *  13      8192    0.0115
-   *  14      16384   0.0081
-   *  15      32768   0.0057
-   *  16      65536   0.0041
-   *  17      131072  0.0029
-   *  18      262144  0.0020
-   *  19      524288  0.0014
-   *  20      1048576 0.0010
-   *
-   *  Keep in mind, to store N distinct longs, you only need 8N bytes.
-   *  See SetSizeAggregator for an approach that uses an exact set
-   *  when the cardinality is small, and switches to HLL after we have
-   *  enough items. Ideally, you would keep an exact set until it is
-   *  smaller to store the HLL (but actually since we use sparse vectors
-   *  to store the HLL, a small HLL takes a lot less than the size above).
-   */
+    * The true error is distributed like a Gaussian with
+    * this standard deviation.
+    * let m = 2^bits. The size of the HLL is m bytes.
+    *
+    * bits | size | error
+    *   9       512     0.0460
+    *  10      1024    0.0325
+    *  11      2048    0.0230
+    *  12      4096    0.0163
+    *  13      8192    0.0115
+    *  14      16384   0.0081
+    *  15      32768   0.0057
+    *  16      65536   0.0041
+    *  17      131072  0.0029
+    *  18      262144  0.0020
+    *  19      524288  0.0014
+    *  20      1048576 0.0010
+    *
+    *  Keep in mind, to store N distinct longs, you only need 8N bytes.
+    *  See SetSizeAggregator for an approach that uses an exact set
+    *  when the cardinality is small, and switches to HLL after we have
+    *  enough items. Ideally, you would keep an exact set until it is
+    *  smaller to store the HLL (but actually since we use sparse vectors
+    *  to store the HLL, a small HLL takes a lot less than the size above).
+    */
   def error(bits: Int): Double = 1.04 / scala.math.sqrt(twopow(bits))
 
   /**
-   * This gives you a number of bits to use to have a given standard
-   * error
-   */
+    * This gives you a number of bits to use to have a given standard
+    * error
+    */
   def bitsForError(err: Double): Int = {
     // If the error is less than 0.00003, the HLL needs more than 1 << 31 bytes
     // which means the array size cannot be stored in an Int, which will cause
     // problems. If you need that precise a count, use a different approach.
-    require(err >= 0.00003 && err < 1.0, s"Error must be in (0.00003, 1.0): $err")
+    require(
+      err >= 0.00003 && err < 1.0,
+      s"Error must be in (0.00003, 1.0): $err"
+    )
     math.ceil(2.0 * math.log(1.04 / err) / math.log(2.0)).toInt
   }
 }
@@ -280,27 +289,33 @@ sealed abstract class HLL extends java.io.Serializable {
       size * scala.math.log(size.toDouble / zeroCnt)
     }
   }
+
   /**
-   * Set each item in the given buffer to the max of this and the buffer
-   */
+    * Set each item in the given buffer to the max of this and the buffer
+    */
   def updateInto(buffer: Array[Byte]): Unit
 
   /**
-   * Returns the modified value of rhoW at j, taking into account the
-   * extra run of bits added to rho due to reduction in the length of j.
-   *
-   * @param currentJ    j for which modified rhoW is needed
-   * @param currentRhoW Current rhoW value for j
-   * @param reducedBits New length of j
-   * @param reducedSize New size (passed in to avoid repeated computation)
-   * @param bitMask     Mask to force early termination of HyperLogLog.rhoW (passed in to avoid repeated computation)
-   * @param buf         Byte array (passed in to avoid repeated allocation)
-   *
-   * @return  New value of rhoW
-   */
-  protected def getModifiedRhoW(currentJ: Int, currentRhoW: Byte,
-    reducedBits: Int, reducedSize: Int,
-    bitMask: Int, buf: Array[Byte]): Byte = {
+    * Returns the modified value of rhoW at j, taking into account the
+    * extra run of bits added to rho due to reduction in the length of j.
+    *
+    * @param currentJ    j for which modified rhoW is needed
+    * @param currentRhoW Current rhoW value for j
+    * @param reducedBits New length of j
+    * @param reducedSize New size (passed in to avoid repeated computation)
+    * @param bitMask     Mask to force early termination of HyperLogLog.rhoW (passed in to avoid repeated computation)
+    * @param buf         Byte array (passed in to avoid repeated allocation)
+    *
+    * @return  New value of rhoW
+    */
+  protected def getModifiedRhoW(
+      currentJ: Int,
+      currentRhoW: Byte,
+      reducedBits: Int,
+      reducedSize: Int,
+      bitMask: Int,
+      buf: Array[Byte]
+  ): Byte = {
     if (currentRhoW == 0)
       // rhoW not set, skip
       currentRhoW
@@ -316,18 +331,21 @@ sealed abstract class HLL extends java.io.Serializable {
   }
 
   /**
-   * Returns a new HLL instance with reduced size
-   *
-   * [[http://research.neustar.biz/2012/09/12/set-operations-on-hlls-of-different-sizes/]]
-   *
-   * [[http://research.neustar.biz/2013/03/25/hyperloglog-engineering-choosing-the-right-bits/]]
-   *
-   * @param reducedBits The new number of bits to use
-   *
-   * @return  New HLL instance with reduced size
-   */
+    * Returns a new HLL instance with reduced size
+    *
+    * [[http://research.neustar.biz/2012/09/12/set-operations-on-hlls-of-different-sizes/]]
+    *
+    * [[http://research.neustar.biz/2013/03/25/hyperloglog-engineering-choosing-the-right-bits/]]
+    *
+    * @param reducedBits The new number of bits to use
+    *
+    * @return  New HLL instance with reduced size
+    */
   def downsize(reducedBits: Int): HLL = {
-    require(reducedBits > 3 && reducedBits <= bits, s"Use at least 4, and at most $bits bits")
+    require(
+      reducedBits > 3 && reducedBits <= bits,
+      s"Use at least 4, and at most $bits bits"
+    )
     if (reducedBits == bits)
       this
     else {
@@ -341,16 +359,21 @@ sealed abstract class HLL extends java.io.Serializable {
   }
 
   /**
-   * Returns a new HLL instance with reduced size
-   *
-   * @param reducedBits The new number of bits to use (for the length of j)
-   * @param reducedSize New size (passed in to avoid repeated computation)
-   * @param bitMask     Mask to force early termination of HyperLogLog.rhoW (passed in to avoid repeated computation)
-   * @param buf         Byte array (passed in to avoid repeated allocation)
-   *
-   * @return  New HLL instance with reduced size
-   */
-  protected def downsize(reducedBits: Int, reducedSize: Int, bitMask: Int, buf: Array[Byte]): HLL
+    * Returns a new HLL instance with reduced size
+    *
+    * @param reducedBits The new number of bits to use (for the length of j)
+    * @param reducedSize New size (passed in to avoid repeated computation)
+    * @param bitMask     Mask to force early termination of HyperLogLog.rhoW (passed in to avoid repeated computation)
+    * @param buf         Byte array (passed in to avoid repeated allocation)
+    *
+    * @return  New HLL instance with reduced size
+    */
+  protected def downsize(
+      reducedBits: Int,
+      reducedSize: Int,
+      bitMask: Int,
+      buf: Array[Byte]
+  ): HLL
 }
 
 case class SparseHLL(bits: Int, maxRhow: Map[Int, Max[Byte]]) extends HLL {
@@ -361,14 +384,19 @@ case class SparseHLL(bits: Int, maxRhow: Map[Int, Max[Byte]]) extends HLL {
 
   lazy val zeroCnt = size - maxRhow.size
 
-  lazy val z = 1.0 / (zeroCnt.toDouble + maxRhow.values.map { mj => HyperLogLog.negativePowersOfTwo(mj.get) }.sum)
+  lazy val z = 1.0 / (zeroCnt.toDouble + maxRhow.values.map { mj =>
+    HyperLogLog.negativePowersOfTwo(mj.get)
+  }.sum)
 
   def +(other: HLL) = {
 
     other match {
 
       case sparse @ SparseHLL(_, oMaxRhow) =>
-        assert(sparse.size == size, "Incompatible HLL size: " + sparse.size + " != " + size)
+        assert(
+          sparse.size == size,
+          "Incompatible HLL size: " + sparse.size + " != " + size
+        )
         val allMaxRhow = Monoid.plus(maxRhow, oMaxRhow)
         if (allMaxRhow.size * 16 <= size) {
           SparseHLL(bits, allMaxRhow)
@@ -377,7 +405,10 @@ case class SparseHLL(bits: Int, maxRhow: Map[Int, Max[Byte]]) extends HLL {
         }
 
       case DenseHLL(bits, oldV) =>
-        assert(oldV.size == size, "Incompatible HLL size: " + oldV.size + " != " + size)
+        assert(
+          oldV.size == size,
+          "Incompatible HLL size: " + oldV.size + " != " + size
+        )
         val newContents: Array[Byte] = oldV.array.clone
         val siz = newContents.size
 
@@ -411,11 +442,17 @@ case class SparseHLL(bits: Int, maxRhow: Map[Int, Max[Byte]]) extends HLL {
     }
   }
 
-  override protected def downsize(reducedBits: Int, reducedSize: Int, bitMask: Int, buf: Array[Byte]): HLL = {
+  override protected def downsize(
+      reducedBits: Int,
+      reducedSize: Int,
+      bitMask: Int,
+      buf: Array[Byte]
+  ): HLL = {
     val reducedMaxRhoW = collection.mutable.Map.empty[Int, Byte]
     maxRhow.foreach {
       case (j, rhoW) =>
-        val modifiedRhoW = getModifiedRhoW(j, rhoW.get, reducedBits, reducedSize, bitMask, buf)
+        val modifiedRhoW =
+          getModifiedRhoW(j, rhoW.get, reducedBits, reducedSize, bitMask, buf)
         val newJ = j % reducedSize
         val newRhoW = reducedMaxRhoW.getOrElse(newJ, 0: Byte)
         reducedMaxRhoW += (newJ -> (newRhoW max modifiedRhoW))
@@ -425,11 +462,14 @@ case class SparseHLL(bits: Int, maxRhow: Map[Int, Max[Byte]]) extends HLL {
 }
 
 /**
- * These are the individual instances which the Monoid knows how to add
- */
+  * These are the individual instances which the Monoid knows how to add
+  */
 case class DenseHLL(bits: Int, v: Bytes) extends HLL {
 
-  assert(v.size == (1 << bits), "Invalid size for dense vector: " + size + " != (1 << " + bits + ")")
+  assert(
+    v.size == (1 << bits),
+    "Invalid size for dense vector: " + size + " != (1 << " + bits + ")"
+  )
 
   def size = v.size
 
@@ -464,7 +504,10 @@ case class DenseHLL(bits: Int, v: Bytes) extends HLL {
       case SparseHLL(_, _) => (other + this)
 
       case DenseHLL(_, ov) =>
-        assert(ov.size == v.size, "Incompatible HLL size: " + ov.size + " != " + v.size)
+        assert(
+          ov.size == v.size,
+          "Incompatible HLL size: " + ov.size + " != " + v.size
+        )
 
         val siz: Int = ov.size
         val newContents: Array[Byte] = new Array[Byte](siz)
@@ -499,10 +542,16 @@ case class DenseHLL(bits: Int, v: Bytes) extends HLL {
     }
   }
 
-  override def downsize(reducedBits: Int, reducedSize: Int, bitMask: Int, buf: Array[Byte]): HLL = {
+  override def downsize(
+      reducedBits: Int,
+      reducedSize: Int,
+      bitMask: Int,
+      buf: Array[Byte]
+  ): HLL = {
     val reducedV = Array.fill[Byte](reducedSize)(0: Byte)
     for (i <- 0 until size) {
-      val modifiedRhoW = getModifiedRhoW(i, v(i), reducedBits, reducedSize, bitMask, buf)
+      val modifiedRhoW =
+        getModifiedRhoW(i, v(i), reducedBits, reducedSize, bitMask, buf)
       val newJ = i % reducedSize
       val newRhoW = reducedV(newJ)
       reducedV.update(newJ, modifiedRhoW max newRhoW)
@@ -529,7 +578,10 @@ class HyperLogLogMonoid(val bits: Int) extends Monoid[HLL] {
 
   def plus(left: HLL, right: HLL) = left + right
 
-  private[this] final def denseUpdate(existing: HLL, iter: Iterator[HLL]): HLL = {
+  private[this] final def denseUpdate(
+      existing: HLL,
+      iter: Iterator[HLL]
+  ): HLL = {
     val buffer = new Array[Byte](size)
     existing.updateInto(buffer)
     iter.foreach { _.updateInto(buffer) }
@@ -571,7 +623,9 @@ class HyperLogLogMonoid(val bits: Int) extends Monoid[HLL] {
   @deprecated("Use toHLL", since = "0.10.0 / 2015-05")
   def batchCreate[T <% Array[Byte]](instances: Iterable[T]): HLL = {
     val allMaxRhow = instances
-      .map { x => jRhoW(hash(x), bits) }
+      .map { x =>
+        jRhoW(hash(x), bits)
+      }
       .groupBy { case (j, rhow) => j }
       .map { case (j, iter) => (j, Max(iter.maxBy(_._2)._2)) }
     if (allMaxRhow.size * 16 <= size) {
@@ -599,26 +653,27 @@ class HyperLogLogMonoid(val bits: Int) extends Monoid[HLL] {
   }
 
   final def intersectionSize(his: Seq[HLL]): Approximate[Long] = {
-    his.headOption.map { head =>
-      val tail = his.tail
-      /*
-       * |A n B| = |A| + |B| - |A u B|
-       * in the below, we set A = head, and B = tail.
-       * then note that A u (B0 n B1 n ...) = (B0 u A) n (B1 u A) n ...
-       * the latter we can compute with tail.map { _ + A } using the HLLInstance +
-       * since + on HLLInstance creates the instance for the union.
-       */
-      sizeOf(head) + intersectionSize(tail) -
-        intersectionSize(tail.map { _ + head })
-    }
+    his.headOption
+      .map { head =>
+        val tail = his.tail
+        /*
+         * |A n B| = |A| + |B| - |A u B|
+         * in the below, we set A = head, and B = tail.
+         * then note that A u (B0 n B1 n ...) = (B0 u A) n (B1 u A) n ...
+         * the latter we can compute with tail.map { _ + A } using the HLLInstance +
+         * since + on HLLInstance creates the instance for the union.
+         */
+        sizeOf(head) + intersectionSize(tail) -
+          intersectionSize(tail.map { _ + head })
+      }
       .map { _.withMin(0L) } // We always know the intersection is >= 0
       .getOrElse(Approximate.exact(0L)) // Empty lists have no intersection
   }
 }
 
 /**
- * This object makes it easier to create Aggregator instances that use HLL
- */
+  * This object makes it easier to create Aggregator instances that use HLL
+  */
 object HyperLogLogAggregator {
   def apply(bits: Int): HyperLogLogAggregator = {
     val monoid = new HyperLogLogMonoid(bits)
@@ -626,27 +681,27 @@ object HyperLogLogAggregator {
   }
 
   /**
-   * Create an Aggregator that returns the estimate size, not the HLL
-   * approximate data structure itself. This is convenient, but cannot
-   * be combined later with another unique count like an HLL could.
-   *
-   * @param bits is the log of the size the HLL.
-   */
+    * Create an Aggregator that returns the estimate size, not the HLL
+    * approximate data structure itself. This is convenient, but cannot
+    * be combined later with another unique count like an HLL could.
+    *
+    * @param bits is the log of the size the HLL.
+    */
   def sizeAggregator(bits: Int): MonoidAggregator[Array[Byte], HLL, Double] =
     apply(bits).andThenPresent(_.estimatedSize)
 
   /**
-   * Give a HyperLogLog Aggregator that have the given error.
-   * It is up to you, using bitsForError, to see if the size is
-   * still practical for your application.
-   *
-   * 0.016 (1.6%), 4    KB
-   * 0.006 (0.6%), 32   KB
-   * 0.002 (0.2%), 256  KB
-   * 0.001 (0.1%), 1024 KB
-   *
-   * Cutting the error in half takes 4x the size.
-   */
+    * Give a HyperLogLog Aggregator that have the given error.
+    * It is up to you, using bitsForError, to see if the size is
+    * still practical for your application.
+    *
+    * 0.016 (1.6%), 4    KB
+    * 0.006 (0.6%), 32   KB
+    * 0.002 (0.2%), 256  KB
+    * 0.001 (0.1%), 1024 KB
+    *
+    * Cutting the error in half takes 4x the size.
+    */
   def withError(err: Double): HyperLogLogAggregator =
     apply(HyperLogLog.bitsForError(err))
 
@@ -654,31 +709,40 @@ object HyperLogLogAggregator {
     withBits(HyperLogLog.bitsForError(err))
 
   /**
-   * This creates an HLL for type K, that uses (2^bits) bytes to store
-   */
-  def withBits[K](bits: Int)(implicit hash128: Hash128[K]): GenHLLAggregator[K] = {
+    * This creates an HLL for type K, that uses (2^bits) bytes to store
+    */
+  def withBits[K](
+      bits: Int
+  )(implicit hash128: Hash128[K]): GenHLLAggregator[K] = {
     val monoid = new HyperLogLogMonoid(bits)
     GenHLLAggregator(monoid, hash128)
   }
+
   /**
-   * Give an approximate set size (not the HLL) based on inputs of Array[Byte]
-   * see HyperLogLog.bitsForError for a size table based on the error
-   * see SetSizeHashAggregator for a version that uses exact sets up to a given size
-   */
+    * Give an approximate set size (not the HLL) based on inputs of Array[Byte]
+    * see HyperLogLog.bitsForError for a size table based on the error
+    * see SetSizeHashAggregator for a version that uses exact sets up to a given size
+    */
   def sizeWithError(err: Double): MonoidAggregator[Array[Byte], HLL, Double] =
     withError(err).andThenPresent(_.estimatedSize)
 
-  def sizeWithErrorGeneric[K](err: Double)(implicit hash128: Hash128[K]): MonoidAggregator[K, HLL, Long] =
+  def sizeWithErrorGeneric[K](
+      err: Double
+  )(implicit hash128: Hash128[K]): MonoidAggregator[K, HLL, Long] =
     withErrorGeneric(err).andThenPresent(_.estimatedSize.toLong)
 }
 
-case class GenHLLAggregator[K](val hllMonoid: HyperLogLogMonoid, val hash: Hash128[K]) extends MonoidAggregator[K, HLL, HLL] {
+case class GenHLLAggregator[K](
+    val hllMonoid: HyperLogLogMonoid,
+    val hash: Hash128[K]
+) extends MonoidAggregator[K, HLL, HLL] {
   def monoid = hllMonoid
   def prepare(k: K) = hllMonoid.toHLL(k)(hash)
   def present(hll: HLL) = hll
 }
 
-case class HyperLogLogAggregator(val hllMonoid: HyperLogLogMonoid) extends MonoidAggregator[Array[Byte], HLL, HLL] {
+case class HyperLogLogAggregator(val hllMonoid: HyperLogLogMonoid)
+    extends MonoidAggregator[Array[Byte], HLL, HLL] {
   val monoid = hllMonoid
 
   def prepare(value: Array[Byte]) = monoid.create(value)
@@ -686,10 +750,10 @@ case class HyperLogLogAggregator(val hllMonoid: HyperLogLogMonoid) extends Monoi
 }
 
 /**
- * convert is not not implemented here
- */
+  * convert is not not implemented here
+  */
 abstract class SetSizeAggregatorBase[A](hllBits: Int, maxSetSize: Int)
-  extends EventuallyMonoidAggregator[A, HLL, Set[A], Long] {
+    extends EventuallyMonoidAggregator[A, HLL, Set[A], Long] {
 
   def presentLeft(hll: HLL) = hll.approximateSize.estimate
 
@@ -699,17 +763,22 @@ abstract class SetSizeAggregatorBase[A](hllBits: Int, maxSetSize: Int)
   val rightAggregator = Aggregator.uniqueCount[A].andThenPresent { _.toLong }
 }
 
-case class SetSizeAggregator[A](hllBits: Int, maxSetSize: Int = 10)(implicit toBytes: A => Array[Byte])
-  extends SetSizeAggregatorBase[A](hllBits, maxSetSize) {
+case class SetSizeAggregator[A](hllBits: Int, maxSetSize: Int = 10)(
+    implicit toBytes: A => Array[Byte]
+) extends SetSizeAggregatorBase[A](hllBits, maxSetSize) {
   def convert(set: Set[A]) = leftSemigroup.batchCreate(set.map(toBytes))
 }
 
 /**
- * Use a Hash128 when converting to HLL, rather than an implicit conversion to Array[Byte]
- * Unifying with SetSizeAggregator would be nice, but since they only differ in an implicit
- * parameter, scala seems to be giving me errors.
- */
-case class SetSizeHashAggregator[A](hllBits: Int, maxSetSize: Int = 10)(implicit hash: Hash128[A])
-  extends SetSizeAggregatorBase[A](hllBits, maxSetSize) {
-  def convert(set: Set[A]) = leftSemigroup.sum(set.iterator.map { a => leftSemigroup.toHLL(a)(hash) })
+  * Use a Hash128 when converting to HLL, rather than an implicit conversion to Array[Byte]
+  * Unifying with SetSizeAggregator would be nice, but since they only differ in an implicit
+  * parameter, scala seems to be giving me errors.
+  */
+case class SetSizeHashAggregator[A](hllBits: Int, maxSetSize: Int = 10)(
+    implicit hash: Hash128[A]
+) extends SetSizeAggregatorBase[A](hllBits, maxSetSize) {
+  def convert(set: Set[A]) =
+    leftSemigroup.sum(set.iterator.map { a =>
+      leftSemigroup.toHLL(a)(hash)
+    })
 }

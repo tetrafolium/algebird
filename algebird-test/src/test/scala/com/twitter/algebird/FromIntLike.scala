@@ -3,8 +3,8 @@ package com.twitter.algebird
 import scala.annotation.implicitNotFound
 
 /**
- * Creates an instance of `T` given an `Int`.  We use this type class to generate input data of type `T` for CMS.
- */
+  * Creates an instance of `T` given an `Int`.  We use this type class to generate input data of type `T` for CMS.
+  */
 @implicitNotFound("No member of type class FromIntLike in scope for ${T}")
 trait FromIntLike[T] {
   def fromInt(x: Int): T

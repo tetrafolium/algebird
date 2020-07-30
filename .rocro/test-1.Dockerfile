@@ -7,4 +7,4 @@ RUN mkdir -p task-results
 RUN cp test-1.sarif.json task-results/test-1.sarif
 RUN ls -laR
 
-CMD true
+#CMD true

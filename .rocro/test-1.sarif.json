@@ -4,8 +4,8 @@
         {
             "tool": {
                 "driver": {
-                  "name": "gosec",
-                  "fullName": "gosec"
+                    "name": "gosec",
+                    "fullName": "gosec"
                 }
             },
             "results": [
@@ -28,7 +28,7 @@
                             }
                         }
                     ],
-                    "rank": 90.0
+                    "rank": 90
                 },
                 {
                     "kind": "fail",
@@ -52,7 +52,7 @@
                             }
                         }
                     ],
-                    "rank": 90.0
+                    "rank": 90
                 }
             ]
         }

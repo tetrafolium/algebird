@@ -1,37 +1,5 @@
 inspecode:
 
-  tools:
-
-    #cpd:
-    #  options:
-    #    --minimum-tokens: 100
-    #  thresholds: { num-issues: 722 }
-
-    fossology:
-      thresholds: { num-issues: 1 }
-
-    grep:
-      thresholds: { num-issues: 20 }
-
-    jscpd:
-      ignore:
-      - '**/test/'  # 24 issues
-      thresholds: { num-issues: 18 }
-
-    misspell:
-      auto-fix: true
-      thresholds: { num-issues: 5 }
-
-    scalafmt:
-      #config-file: .scalafmt.conf         # (auto-detect)
-      auto-fix: true
-      machine: { cpu: 0.75 }
-      thresholds: { num-issues: 180 }
-
-    scalastyle:
-      #config-file: scalastyle-config.xml  # (auto-detect)
-      thresholds: { num-issues: 185 }
-
   tasks:
 
     ### cf. tractrix/codelift#1890
@@ -50,10 +18,8 @@ inspecode:
       #  --build-arg:
       #    XXX: aaa
       #    YYY: bbb
-      #reports:
-      #- from: production
-      #  path: ".rocro/task-results/saas-production/test-1.sarif"
-      #- from: staging
-      #  path: ".rocro/task-results/saas-staging/test-1.sarif"
-      machine: { cpu: 1.25 }
+      reports:
+      - from: test
+        path: ".rocro/task-results.test-1.sarif"
+      machine: { cpu: 0.75 }
       thresholds: { num-issues: 999 }

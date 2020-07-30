@@ -18,8 +18,8 @@ inspecode:
       #  --build-arg:
       #    XXX: aaa
       #    YYY: bbb
-      #reports:
-      #- from: test
-      #  path: ".rocro/task-results/test-1.sarif"
+      reports:
+      - from: test
+        path: "/.rocro/inspecode.sarif"
       machine: { cpu: 0.75 }
       thresholds: { num-issues: 999 }

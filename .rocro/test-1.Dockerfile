@@ -1,4 +1,4 @@
-FROM golang:1.11.0-alpine3.7 as test
+FROM alpine:3.7 as test
 
 COPY . /.repo
 RUN ls -laR /.repo /.rocro

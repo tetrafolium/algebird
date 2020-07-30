@@ -20,6 +20,6 @@ inspecode:
       #    YYY: bbb
       reports:
       - from: test
-        path: ".rocro/task-results.test-1.sarif"
+        path: ".rocro/task-results/test-1.sarif"
       machine: { cpu: 0.75 }
       thresholds: { num-issues: 999 }

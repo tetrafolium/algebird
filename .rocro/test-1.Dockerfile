@@ -1,6 +1,8 @@
 FROM golang:1.11.0-alpine3.7 as test
 
-VOLUME /repo
-RUN cp /repo/.rocro/test-1.sarif.json /repo/.rocro/task-results.test-1.sarif
+COPY . /repo
+WORKDIR /repo
+RUN mkdir -p .rocro/task-results
+RUN cp .rocro/test-1.sarif.json .rocro/task-results/test-1.sarif
 
 CMD true

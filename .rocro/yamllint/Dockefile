@@ -1,0 +1,24 @@
+FROM python:3-alpine3.11
+
+MAINTAINER Chu-Siang Lai <chusiang@drx.tw>
+
+RUN echo "===> Update the index of available packages ..."  && \
+      apk update
+
+RUN echo "===> Install some package ..."  && \
+      apk add --no-cache make
+
+RUN echo "===> Install the yamllint ..."  && \
+      pip install 'yamllint>=1.24.0,<1.25.0'
+
+RUN echo "===> Removing package cache ..."  && \
+      rm -rf /var/cache/apk/*               && \
+      rm -rf ~/.cache/pip
+
+COPY . /repo
+
+WORKDIR /repo
+
+RUN yamllint --version
+RUN yamllint --help
+RUN yamllint -f parsable . > /tmp/yamllint.out

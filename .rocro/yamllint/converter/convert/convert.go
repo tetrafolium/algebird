@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	REPOROOT_KEY = `REPOROOT`
-	REPOROOT_URI = `https://github.com/tetrafolium/algebird`
+	reporootKey  = `REPOROOT`
+	reporootURI  = `https://github.com/tetrafolium/algebird`
+	reporootDesc = `Root directory of the project repository.`
 )
 
 func IssueToResult(issue *yamllint.Issue) (*sarif.Result, error) {
@@ -30,7 +31,7 @@ func issueLocationToResultLocations(issueLoc *yamllint.Location) []sarif.Locatio
 	fileExt := filepath.Ext(issueLoc.Filepath)
 	artifactLocation := sarif.ArtifactLocation{
 		URI:       issueLoc.Filepath,
-		URIBaseID: REPOROOT_KEY,
+		URIBaseID: reporootKey,
 	}
 	region := sarif.Region{
 		StartLine:      issueLoc.Line,
@@ -50,11 +51,10 @@ func issueLocationToResultLocations(issueLoc *yamllint.Location) []sarif.Locatio
 
 func OriginalURIBaseIDs() map[string]sarif.ArtifactLocation {
 	return map[string]sarif.ArtifactLocation{
-		REPOROOT_KEY: {
-			URI:   REPOROOT_URI,
-			Index: 0,
+		reporootKey: {
+			URI: reporootURI,
 			Description: &sarif.Message{
-				Text: `Root directory of the project repository.`,
+				Text: reporootDesc,
 			},
 		},
 	}

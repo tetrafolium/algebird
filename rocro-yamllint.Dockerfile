@@ -27,3 +27,8 @@ RUN echo "===> Convert reports to SARIF ..." && \
         > ${OUTDIR}/yamllint.sarif
 
 RUN ls -la ${OUTDIR}
+RUN echo '----------' && \
+    cat -n ${OUTDIR}/yamllint.out && \
+    echo '----------' && \
+    cat -n ${OUTDIR}/yamllint.sarif && \
+    echo '----------'

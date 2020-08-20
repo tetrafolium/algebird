@@ -42,6 +42,7 @@ func Parse(str string) (*Issue, error) {
 	issue := regexpIssue.FindStringSubmatch(str)
 
 	var (
+		//_, strLoc, strOcc = issue...
 		strLoc = issue[1]
 		strOcc = issue[2]
 
@@ -50,6 +51,7 @@ func Parse(str string) (*Issue, error) {
 		line, _   = strconv.Atoi(loc[1])
 		column, _ = strconv.Atoi(loc[2])
 
+		//_, level, message, rule = regexpOccurrence.FindStringSubmatch(strOcc)...
 		occ     = regexpOccurrence.FindStringSubmatch(strOcc)
 		level   = occ[1]
 		message = occ[2]

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/tetrafolium/algebird/.rocro/sarif"
 	"github.com/tetrafolium/algebird/.rocro/yamllint/converter/convert"
-	"github.com/tetrafolium/algebird/.rocro/yamllint/converter/sarif"
 	"github.com/tetrafolium/algebird/.rocro/yamllint/converter/yamllint"
 )
 
@@ -18,7 +18,10 @@ const (
 )
 
 func main() {
-	var results []*sarif.Result
+	var (
+		results   []sarif.Result
+		artifacts []sarif.Artifact
+	)
 
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -35,7 +38,24 @@ func main() {
 			os.Exit(1)
 		}
 
-		results = append(results, result)
+		results = append(results, *result)
+	}
+
+	artifacts, err := convert.ResultsToArtifacts(results)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error in resultsToArtifacts:", err)
+		os.Exit(1)
+	}
+
+	run := sarif.Run{
+		Artifacts: artifacts,
+		Results:   &results,
+	}
+
+	sarifLog := sarif.Log{
+		Version: sarif.VERSION,
+		Schema:  sarif.SCHEMA,
+		Runs:    []sarif.Run{run},
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -43,11 +63,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	byteslice, err := json.MarshalIndent(results, jsonPrefix, jsonIndent)
+	// jsonBytes, err := json.Marshal(results)
+	jsonBytes, err := json.MarshalIndent(sarifLog, jsonPrefix, jsonIndent)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "json.Marshal failed:", err)
 		os.Exit(1)
 	}
 
-	fmt.Fprintln(os.Stdout, bytes.NewBuffer(byteslice).String())
+	fmt.Fprintln(os.Stdout, bytes.NewBuffer(jsonBytes).String())
 }

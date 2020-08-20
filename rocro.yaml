@@ -19,7 +19,7 @@ inspecode:
       #    XXX: aaa
       #    YYY: bbb
       reports:
-      - from: test
+      - from: yamllint-task
         path: "/.rocro/yamllint.sarif"
       machine: { cpu: 0.75 }
       thresholds: { num-issues: 999 }

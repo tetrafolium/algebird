@@ -20,7 +20,7 @@ type ArtifactContent struct {
 type ArtifactLocation struct {
 	URI         URIString   `json:"uri,omitempty"`
 	URIBaseID   string      `json:"uriBaseId,omitempty"`
-	Index       int         `jsn:"index,omitempty"`
+	Index       int         `json:"index,omitempty"`
 	Description *Message    `json:"description,omitempty"`
 	Properties  PropertyBag `json:"properties,omitempty"`
 }

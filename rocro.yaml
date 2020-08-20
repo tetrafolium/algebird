@@ -20,6 +20,6 @@ inspecode:
       #    YYY: bbb
       reports:
       - from: yamllint-task
-        path: "/.rocro/yamllint.sarif"
+        path: "/.reports/yamllint.sarif"
       machine: { cpu: 0.75 }
       thresholds: { num-issues: 999 }

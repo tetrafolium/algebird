@@ -8,6 +8,11 @@ import (
 	"github.com/tetrafolium/algebird/.rocro/yamllint/converter/yamllint"
 )
 
+const (
+	REPOROOT_KEY = `REPOROOT`
+	REPOROOT_URI = `https://github.com/tetrafolium/algebird`
+)
+
 func IssueToResult(issue *yamllint.Issue) (*sarif.Result, error) {
 	locations := issueLocationToResultLocations(&issue.Location)
 	result := sarif.Result{
@@ -25,7 +30,7 @@ func issueLocationToResultLocations(issueLoc *yamllint.Location) []sarif.Locatio
 	fileExt := filepath.Ext(issueLoc.Filepath)
 	artifactLocation := sarif.ArtifactLocation{
 		URI:       issueLoc.Filepath,
-		URIBaseID: `REPOROOT`,
+		URIBaseID: REPOROOT_KEY,
 	}
 	region := sarif.Region{
 		StartLine:      issueLoc.Line,
@@ -41,6 +46,18 @@ func issueLocationToResultLocations(issueLoc *yamllint.Location) []sarif.Locatio
 	}
 	locations := []sarif.Location{location}
 	return locations
+}
+
+func OriginalURIBaseIDs() map[string]sarif.ArtifactLocation {
+	return map[string]sarif.ArtifactLocation{
+		REPOROOT_KEY: {
+			URI:   REPOROOT_URI,
+			Index: 0,
+			Description: &sarif.Message{
+				Text: `Root directory of the project repository.`,
+			},
+		},
+	}
 }
 
 func ResultsToArtifacts(results []sarif.Result) ([]sarif.Artifact, error) {

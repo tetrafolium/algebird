@@ -48,8 +48,9 @@ func main() {
 	}
 
 	run := sarif.Run{
-		Artifacts: artifacts,
-		Results:   &results,
+		OriginalURIBaseIDs: convert.OriginalURIBaseIDs(),
+		Artifacts:          artifacts,
+		Results:            &results,
 	}
 
 	sarifLog := sarif.Log{

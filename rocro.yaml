@@ -1,25 +1,15 @@
+---
 inspecode:
 
   tasks:
 
+    ### https://inspecode.rocro.com/help/configuration/task.html
     ### cf. tractrix/codelift#1890
     - name: yamllint
       type: docker-build
       dockerfile: "rocro-yamllint.Dockerfile"
-      #pre-tasks:
-      #- other-task-name1
-      #- other-task-name2
-      #- ...
-      #artifacts:
-      #- from: stage-name
-      #  path: path/to/artifact
-      #- ...
-      #options:
-      #  --build-arg:
-      #    XXX: aaa
-      #    YYY: bbb
       reports:
       - from: yamllint-task
         path: "/.reports/yamllint.sarif"
-      machine: { cpu: 0.75 }
-      thresholds: { num-issues: 999 }
+      machine: {cpu: 0.75}
+      thresholds: {num-issues: 999}

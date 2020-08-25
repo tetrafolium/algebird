@@ -13,8 +13,8 @@ RUN echo "===> Install the yamllint ..." && \
     echo -n "+++ " ; yamllint --version
 
 ENV REPOPATH="github.com/tetrafolium/algebird" \
-    TOOLPATH="github.com/tetrafolium/inspecode-tasks" \
-    REPODIR="${GOPATH}/src/${REPOPATH}" \
+    TOOLPATH="github.com/tetrafolium/inspecode-tasks"
+ENV REPODIR="${GOPATH}/src/${REPOPATH}" \
     TOOLDIR="${GOPATH}/src/${TOOLPATH}" \
     OUTDIR="/.reports"
 RUN mkdir -p ${REPODIR} ${OUTDIR}
@@ -22,7 +22,7 @@ COPY . ${REPODIR}
 WORKDIR ${REPODIR}
 
 RUN echo "===> Get tool ..." && \
-    go get ${TOOLPATH} || true
+    go get -u ${TOOLPATH} || true
 
 RUN echo "===> Run yamllint ..." && \
     yamllint -f parsable . > "${OUTDIR}/yamllint.issues" || true

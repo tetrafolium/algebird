@@ -1,0 +1,60 @@
+{
+    "version": "2.1.0",
+    "run": [
+        {
+            "tool": {
+                "driver": {
+                    "name": "gosec",
+                    "fullName": "gosec"
+                }
+            },
+            "results": [
+                {
+                    "kind": "fail",
+                    "level": "error",
+                    "message": {
+                        "text": "TLS InsecureSkipVerify set true."
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uri": "codesamples/g402.go",
+                                    "uriBaseId": "REPOROOT"
+                                },
+                                "region": {
+                                    "startLine": 10
+                                }
+                            }
+                        }
+                    ],
+                    "rank": 90
+                },
+                {
+                    "kind": "fail",
+                    "level": "error",
+                    "message": {
+                        "text": "expected declaration, found ','"
+                    },
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uri": "codesamples/golangerr2.go",
+                                    "uriBaseId": "REPOROOT"
+                                },
+                                "region": {
+                                    "startLine": 11,
+                                    "startColumn": 12,
+                                    "endLine": 11,
+                                    "endColumn": 14
+                                }
+                            }
+                        }
+                    ],
+                    "rank": 90
+                }
+            ]
+        }
+    ]
+}

@@ -3,6 +3,17 @@ inspecode:
 
   tasks:
 
+    ### https://inspecode.rocro.com/help/configuration/task.html
+    ### cf. tractrix/codelift#1890
+    - name: yamllint
+      type: docker-build
+      dockerfile: "rocro-yamllint.Dockerfile"
+      reports:
+      - from: yamllint-task
+        path: "/.reports/yamllint.sarif"
+      machine: {cpu: 0.75}
+      thresholds: {num-issues: 999}
+
   tools:
 
     # cpd:

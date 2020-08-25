@@ -28,7 +28,7 @@ RUN echo "===> Run yamllint ..." && \
     yamllint -f parsable . > ${OUTDIR}/yamllint.issues || true
 
 RUN echo "===> Convert yamllint issues to SARIF ..." && \
-    go run $TOOLDIR}/yamllint/cmd/main.go \
+    go run ${TOOLDIR}/yamllint/cmd/main.go \
         < ${OUTDIR}/yamllint.issues \
         > ${OUTDIR}/yamllint.sarif
 

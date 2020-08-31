@@ -15,8 +15,7 @@ RUN echo "===> Install the yamllint ..." && \
 ENV REPOPATH="github.com/tetrafolium/algebird" \
     TOOLPATH="github.com/tetrafolium/inspecode-tasks"
 ENV REPODIR="${GOPATH}/src/${REPOPATH}" \
-    TOOLDIR="${GOPATH}/src/${TOOLPATH}" \
-    OUTDIR="/.reports"
+    TOOLDIR="${GOPATH}/src/${TOOLPATH}"
 
 RUN echo "===> Get tool ..." && \
     go get -u "${TOOLPATH}" || true

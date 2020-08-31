@@ -8,6 +8,12 @@ inspecode:
     - name: yamllint
       type: docker-build
       dockerfile: "rocro-yamllint.Dockerfile"
+      options:
+        --build-arg:
+          OUTDIR=/.reports
+      artifacts:
+      - from: yamllint-task
+        path: "/.reports/yamllint.issues"
       reports:
       - from: yamllint-task
         path: "/.reports/yamllint.sarif"

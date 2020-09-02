@@ -23,7 +23,7 @@ RUN mkdir -p "${REPODIR}" "${OUTDIR}"
 COPY . "${REPODIR}"
 WORKDIR "${REPODIR}"
 
-ENV DOCKEFILES="./*.Dockerfile"
+ENV DOCKEFILES="$(find . -name "*Dockerfile*")"
 RUN echo "===> Run hadolint ..." && \
     hadolint --format json ${DOCKERFILES} > "${OUTDIR}/hadolint.json" || true
 

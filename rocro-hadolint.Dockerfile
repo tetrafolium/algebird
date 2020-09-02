@@ -23,8 +23,9 @@ RUN mkdir -p "${REPODIR}" "${OUTDIR}"
 COPY . "${REPODIR}"
 WORKDIR "${REPODIR}"
 
+ENV DOCKEFILES="./*.Dockerfile"
 RUN echo "===> Run hadolint ..." && \
-    hadolint --fotmat json . > "${OUTDIR}/hadolint.json" || true
+    hadolint --format json ${DOCKERFILES} > "${OUTDIR}/hadolint.json" || true
 
 RUN echo "===> Convert hadolint JSON to SARIF ..." && \
     go run "${TOOLDIR}/hadolint/cmd/main.go" \

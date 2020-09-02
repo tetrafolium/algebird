@@ -1,8 +1,12 @@
 FROM hadolint/hadolint:latest AS hadolint-task
 
+RUN echo "===> Install git ..." && \
+    apk add --update --no-cache git && \
+    echo "+++ $(git version)"
+
 RUN echo "===> Install golang ..." && \
     apk add --update --no-cache go && \
-    echo -n "+++ " ; go version
+    echo "+++ $(go version)"
 
 ENV GOBIN="$GOROOT/bin" \
     GOPATH="/.go" \
@@ -23,9 +27,14 @@ RUN mkdir -p "${REPODIR}" "${OUTDIR}"
 COPY . "${REPODIR}"
 WORKDIR "${REPODIR}"
 
-ENV DOCKEFILES="$(find . -name "*Dockerfile*")"
 RUN echo "===> Run hadolint ..." && \
-    hadolint --format json ${DOCKERFILES} > "${OUTDIR}/hadolint.json" || true
+    ( find . -name '*Dockerfile*' | \
+      xargs hadolint --format json > "${OUTDIR}/hadolint.json" ) || true
+
+RUN ls -la "${OUTDIR}"
+RUN echo '----------' && \
+    cat "${OUTDIR}/hadolint.json" && \
+    echo '----------'
 
 RUN echo "===> Convert hadolint JSON to SARIF ..." && \
     go run "${TOOLDIR}/hadolint/cmd/main.go" \
@@ -34,7 +43,5 @@ RUN echo "===> Convert hadolint JSON to SARIF ..." && \
 
 RUN ls -la "${OUTDIR}"
 RUN echo '----------' && \
-    cat -n "${OUTDIR}/hadolint.json" && \
-    echo '----------' && \
     cat -n "${OUTDIR}/hadolint.sarif" && \
     echo '----------'

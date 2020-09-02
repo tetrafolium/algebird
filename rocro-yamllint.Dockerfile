@@ -2,7 +2,7 @@ FROM python:3-alpine3.11 AS yamllint-task
 
 RUN echo "===> Install golang ..." && \
     apk add --update --no-cache go && \
-    echo -n "+++ " ; go version
+    echo "+++ $(go version)"
 
 ENV GOBIN="$GOROOT/bin" \
     GOPATH="/.go" \
@@ -10,7 +10,7 @@ ENV GOBIN="$GOROOT/bin" \
 
 RUN echo "===> Install the yamllint ..." && \
     pip3 install 'yamllint>=1.24.0,<1.25.0' && \
-    echo -n "+++ " ; yamllint --version
+    echo "+++ $(yamllint --version)"
 
 ENV REPOPATH="github.com/tetrafolium/algebird" \
     TOOLPATH="github.com/tetrafolium/inspecode-tasks"
@@ -30,6 +30,11 @@ WORKDIR "${REPODIR}"
 RUN echo "===> Run yamllint ..." && \
     yamllint -f parsable . > "${OUTDIR}/yamllint.issues" || true
 
+RUN ls -la "${OUTDIR}"
+RUN echo '----------' && \
+    cat -n "${OUTDIR}/yamllint.issues" && \
+    echo '----------'
+
 RUN echo "===> Convert yamllint issues to SARIF ..." && \
     go run "${TOOLDIR}/yamllint/cmd/main.go" \
         < "${OUTDIR}/yamllint.issues" \
@@ -37,7 +42,5 @@ RUN echo "===> Convert yamllint issues to SARIF ..." && \
 
 RUN ls -la "${OUTDIR}"
 RUN echo '----------' && \
-    cat -n "${OUTDIR}/yamllint.issues" && \
-    echo '----------' && \
     cat -n "${OUTDIR}/yamllint.sarif" && \
     echo '----------'

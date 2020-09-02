@@ -1,8 +1,12 @@
 FROM hadolint/hadolint:latest AS hadolint-task
 
+RUN echo "===> Install git ..." && \
+    apk add --update --no-cache git && \
+    echo "+++ $(git version)"
+
 RUN echo "===> Install golang ..." && \
     apk add --update --no-cache go && \
-    echo -n "+++ " ; go version
+    echo "+++ $(go version)"
 
 ENV GOBIN="$GOROOT/bin" \
     GOPATH="/.go" \
@@ -29,7 +33,7 @@ RUN echo "===> Run hadolint ..." && \
 
 RUN ls -la "${OUTDIR}"
 RUN echo '----------' && \
-    ( jsonlint "${OUTDIR}/hadolint.json" | cat -n ) && \
+    cat "${OUTDIR}/hadolint.json" && \
     echo '----------'
 
 RUN echo "===> Convert hadolint JSON to SARIF ..." && \

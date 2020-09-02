@@ -29,8 +29,8 @@ RUN echo "===> Run hadolint ..." && \
 
 RUN ls -la "${OUTDIR}"
 RUN echo '----------' && \
-    cat -n "${OUTDIR}/hadolint.json" && \
-    echo '----------' && \
+    ( jsonlint "${OUTDIR}/hadolint.json" | cat -n ) && \
+    echo '----------'
 
 RUN echo "===> Convert hadolint JSON to SARIF ..." && \
     go run "${TOOLDIR}/hadolint/cmd/main.go" \

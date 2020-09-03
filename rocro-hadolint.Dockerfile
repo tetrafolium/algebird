@@ -28,7 +28,8 @@ COPY . "${REPODIR}"
 WORKDIR "${REPODIR}"
 
 ### Run hadolint ...
-RUN ( find . -name '*Dockerfile*' | \
+RUN echo "+++ $(hadolint --version)"
+RUN ( find . -type f -name '*Dockerfile*' | \
       xargs hadolint --format json > "${OUTDIR}/hadolint.json" ) || true
 RUN ls -la "${OUTDIR}"
 

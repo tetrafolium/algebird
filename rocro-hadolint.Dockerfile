@@ -1,12 +1,12 @@
-FROM hadolint/hadolint:latest AS hadolint-task
+FROM golang:1.14-alpine AS hadolint-task
 
 ### Install git ...
 RUN apk add --update --no-cache git && \
     echo "+++ $(git version)"
 
-### Install golang ...
-RUN apk add --update --no-cache go && \
-    echo "+++ $(go version)"
+### Install hadolint ...
+RUN apk add --update --no-cache hadolint && \
+    echo "+++ $(hadolint --version)"
 
 ENV GOBIN="$GOROOT/bin" \
     GOPATH="/.go" \
@@ -28,7 +28,6 @@ COPY . "${REPODIR}"
 WORKDIR "${REPODIR}"
 
 ### Run hadolint ...
-RUN echo "+++ $(hadolint --version)"
 RUN ( find . -type f -name '*Dockerfile*' | \
       xargs hadolint --format json > "${OUTDIR}/hadolint.json" ) || true
 RUN ls -la "${OUTDIR}"

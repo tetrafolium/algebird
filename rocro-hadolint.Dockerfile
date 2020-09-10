@@ -1,12 +1,14 @@
 FROM golang:1.14-alpine AS hadolint-task
 
-### Install git ...
-RUN apk add --update --no-cache git && \
-    echo "+++ $(git version)"
+### Install tools ...
+RUN apk add --update --no-cache curl git
 
 ### Install hadolint ...
-RUN apk add --update --no-cache hadolint && \
-    echo "+++ $(hadolint --version)"
+ENV HADOLINT_VERSION="v1.18.0"
+RUN echo "+++ $(uname -s)-$(uname -m)"
+RUN curl -sL -o /usr/bin/hadolint \
+         "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-$(uname -s)-$(uname -m)" \
+ && chmod 755 /usr/bin/hadolint
 
 ENV GOBIN="$GOROOT/bin" \
     GOPATH="/.go" \

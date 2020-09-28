@@ -1,13 +1,15 @@
 package com.twitter.algebird.macros
 
-import scala.language.experimental.{ macros => sMacros }
+import scala.language.experimental.{macros => sMacros}
 import scala.reflect.macros.Context
 import scala.reflect.runtime.universe._
 
 import com.twitter.algebird._
 
 object RingMacro {
-  def caseClassRing[T](c: Context)(implicit T: c.WeakTypeTag[T]): c.Expr[Ring[T]] = {
+  def caseClassRing[T](
+      c: Context
+  )(implicit T: c.WeakTypeTag[T]): c.Expr[Ring[T]] = {
     import c.universe._
 
     ensureCaseClass(c)
@@ -15,8 +17,8 @@ object RingMacro {
     val params = getParams(c)
     val companion = getCompanionObject(c)
 
-    val implicitRings = params.map {
-      param => q"implicitly[_root_.com.twitter.algebird.Ring[${param.returnType}]]"
+    val implicitRings = params.map { param =>
+      q"implicitly[_root_.com.twitter.algebird.Ring[${param.returnType}]]"
     }
 
     val timesList = params.zip(implicitRings).map {
@@ -38,4 +40,3 @@ object RingMacro {
   }
 
 }
-

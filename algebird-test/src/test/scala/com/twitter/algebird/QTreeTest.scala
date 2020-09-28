@@ -12,22 +12,22 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
 import org.scalatest._
 
-import org.scalatest.{ PropSpec, Matchers }
+import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import org.scalacheck.Arbitrary
-import org.scalatest.{ PropSpec, Matchers }
+import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{ PropSpec, Matchers }
+import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import org.scalacheck.Properties
-import org.scalatest.{ PropSpec, Matchers }
+import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import org.scalacheck.Gen.choose
 
@@ -38,9 +38,7 @@ class QTreeLaws extends CheckProperties {
 
   implicit val qtSemigroup = new QTreeSemigroup[Long](6)
   implicit val qtGen = Arbitrary {
-    for (
-      v <- choose(0L, 10000L)
-    ) yield (QTree(v))
+    for (v <- choose(0L, 10000L)) yield (QTree(v))
   }
 
   property("QTree is associative") {
@@ -51,12 +49,14 @@ class QTreeLaws extends CheckProperties {
 
 class QTreeTest extends WordSpec with Matchers {
   def randomList(n: Long) = {
-    (1L to n).map{ i => math.random }
+    (1L to n).map { i =>
+      math.random
+    }
   }
 
   def buildQTree(k: Int, list: Seq[Double]) = {
     val qtSemigroup = new QTreeSemigroup[Double](k)
-    list.map{ QTree(_) }.reduce{ qtSemigroup.plus(_, _) }
+    list.map { QTree(_) }.reduce { qtSemigroup.plus(_, _) }
   }
 
   def trueQuantile[T: Ordering](list: Seq[T], q: Double): T = {
@@ -66,7 +66,7 @@ class QTreeTest extends WordSpec with Matchers {
   }
 
   def trueRangeSum(list: Seq[Double], from: Double, to: Double) =
-    list.filter{ _ >= from }.filter{ _ < to }.sum
+    list.filter { _ >= from }.filter { _ < to }.sum
 
   for (k <- Seq(3, 11, 51, 101)) {
     s"QTree with elements (1 to $k)" should {
@@ -129,7 +129,7 @@ class QTreeTest extends WordSpec with Matchers {
         assert(interval.contains(truth))
       }
       "work as an aggregator for longs with a small stream" in {
-        val list = randomList(10000).map(i => (i * 1000l).toLong)
+        val list = randomList(10000).map(i => (i * 1000L).toLong)
         val agg = QTreeAggregator(quantile)(implicitly[Numeric[Long]])
         val interval = agg(list)
         val truth = trueQuantile(list, quantile)

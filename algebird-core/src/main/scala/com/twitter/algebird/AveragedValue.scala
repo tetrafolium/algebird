@@ -12,15 +12,20 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
 object AveragedValue {
   implicit val group = AveragedGroup
   def aggregator: Aggregator[Double, AveragedValue, Double] = Averager
-  def numericAggregator[N](implicit num: Numeric[N]): MonoidAggregator[N, AveragedValue, Double] =
-    Aggregator.prepareMonoid { n: N => AveragedValue(num.toDouble(n)) }
+  def numericAggregator[N](
+      implicit num: Numeric[N]
+  ): MonoidAggregator[N, AveragedValue, Double] =
+    Aggregator
+      .prepareMonoid { n: N =>
+        AveragedValue(num.toDouble(n))
+      }
       .andThenPresent(_.value)
 
   def apply[V <% Double](v: V) = new AveragedValue(1L, v)
@@ -34,12 +39,13 @@ object AveragedGroup extends Group[AveragedValue] {
   // algorithm.  This constant defines how close the ratio of the smaller to the total count
   // can be:
   private val STABILITY_CONSTANT = 0.1
+
   /**
-   * Uses a more stable online algorithm which should
-   * be suitable for large numbers of records
-   * similar to:
-   * http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
-   */
+    * Uses a more stable online algorithm which should
+    * be suitable for large numbers of records
+    * similar to:
+    * http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
+    */
   val zero = AveragedValue(0L, 0.0)
 
   override def isNonZero(av: AveragedValue) = (av.count != 0L)
@@ -47,10 +53,11 @@ object AveragedGroup extends Group[AveragedValue] {
   override def negate(av: AveragedValue) = AveragedValue(-av.count, av.value)
 
   def plus(cntAve1: AveragedValue, cntAve2: AveragedValue): AveragedValue = {
-    val (big, small) = if (cntAve1.count >= cntAve2.count)
-      (cntAve1, cntAve2)
-    else
-      (cntAve2, cntAve1)
+    val (big, small) =
+      if (cntAve1.count >= cntAve2.count)
+        (cntAve1, cntAve2)
+      else
+        (cntAve2, cntAve1)
     val n = big.count
     val k = small.count
     val newCnt = n + k
@@ -64,7 +71,9 @@ object AveragedGroup extends Group[AveragedValue] {
       val ak = small.value
       val scaling = k.toDouble / newCnt
       // a_n + (a_k - a_n)*(k/(n+k)) is only stable if n is not approximately k
-      val newAve = if (scaling < STABILITY_CONSTANT) (an + (ak - an) * scaling) else (n * an + k * ak) / newCnt
+      val newAve =
+        if (scaling < STABILITY_CONSTANT) (an + (ak - an) * scaling)
+        else (n * an + k * ak) / newCnt
       new AveragedValue(newCnt, newAve)
     }
   }

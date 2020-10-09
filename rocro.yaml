@@ -22,7 +22,7 @@ inspecode:
           format:
             type: SARIF
       machine: {cpu: 0.75}
-      thresholds: {num-issues: 999}
+      thresholds: {num-issues: 1}
 
     - name: hadolint
       type: docker-build
@@ -41,7 +41,7 @@ inspecode:
           format:
             type: SARIF
       machine: {cpu: 0.75}
-      thresholds: {num-issues: 7}
+      thresholds: {num-issues: 10}
 
     - name: yamllint
       type: docker-build

@@ -30,8 +30,8 @@ COPY . "${REPODIR}"
 WORKDIR "${REPODIR}"
 
 ### Run hadolint ...
-RUN ( find . -type f -name '*Dockerfile*' | \
-      xargs hadolint --format json > "${OUTDIR}/hadolint.json" ) || true
+RUN ( find . -type f -name '*Dockerfile*' -print0 | xargs -0 hadolint --format json ) \
+        > "${OUTDIR}/hadolint.json" || true
 RUN ls -la "${OUTDIR}"
 
 ### Convert hadolint JSON to SARIF ...

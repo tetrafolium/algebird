@@ -21,7 +21,6 @@ inspecode:
           path: "/.reports/dockerfilelint.sarif"
           format:
             type: SARIF
-      machine: {cpu: 0.75}
       thresholds: {num-issues: 1}
 
     - name: hadolint
@@ -40,7 +39,6 @@ inspecode:
           path: "/.reports/hadolint.sarif"
           format:
             type: SARIF
-      machine: {cpu: 0.75}
       thresholds: {num-issues: 10}
 
     - name: yamllint
@@ -59,7 +57,6 @@ inspecode:
           path: "/.reports/yamllint.sarif"
           format:
             type: SARIF
-      machine: {cpu: 0.75}
       thresholds: {num-issues: 1}
 
   tools:
@@ -87,7 +84,6 @@ inspecode:
     scalafmt:
       # config-file: .scalafmt.conf         # (auto-detect)
       auto-fix: true
-      machine: {cpu: 0.75}
       thresholds: {num-issues: 180}
 
     scalastyle:

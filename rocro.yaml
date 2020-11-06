@@ -64,7 +64,7 @@ inspecode:
     cpd:
       options:
         --minimum-tokens: 100
-      thresholds: {num-issues: 722}
+      thresholds: {num-issues: 695}
 
     fossology:
       thresholds: {num-issues: 1}
@@ -75,7 +75,7 @@ inspecode:
     jscpd:
       ignore:
         - '**/test/'  # 24 issues
-      thresholds: {num-issues: 18}
+      thresholds: {num-issues: 16}
 
     misspell:
       auto-fix: true
@@ -84,6 +84,7 @@ inspecode:
     scalafmt:
       # config-file: .scalafmt.conf         # (auto-detect)
       auto-fix: true
+      machine: {cpu: 0.75}
       thresholds: {num-issues: 180}
 
     scalastyle:

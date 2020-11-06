@@ -61,10 +61,10 @@ inspecode:
 
   tools:
 
-    # cpd:
-    #   options:
-    #     --minimum-tokens: 100
-    #   thresholds: {num-issues: 722}
+    cpd:
+      options:
+        --minimum-tokens: 100
+      thresholds: {num-issues: 722}
 
     fossology:
       thresholds: {num-issues: 1}

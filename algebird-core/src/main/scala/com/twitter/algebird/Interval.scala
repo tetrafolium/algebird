@@ -19,8 +19,8 @@ package com.twitter.algebird
 // TODO this is clearly more general than summingbird, and should be extended to be a ring (add union, etc...)
 
 /**
- * Represents a single interval on a T with an Ordering
- */
+  * Represents a single interval on a T with an Ordering
+  */
 sealed trait Interval[T] extends java.io.Serializable {
   def contains(t: T): Boolean
 
@@ -29,11 +29,11 @@ sealed trait Interval[T] extends java.io.Serializable {
   def &&(that: Interval[T]) = intersect(that)
 
   /**
-   * Map the Interval with a non-decreasing function.
-   * If you use a non-monotonic function (like x^2)
-   * then the result is meaningless.
-   * TODO: It might be good to have types for these properties in algebird.
-   */
+    * Map the Interval with a non-decreasing function.
+    * If you use a non-monotonic function (like x^2)
+    * then the result is meaningless.
+    * TODO: It might be good to have types for these properties in algebird.
+    */
   def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U]
 }
 
@@ -56,21 +56,30 @@ object Interval extends java.io.Serializable {
   type ExLowExUp[T] = Intersection[ExclusiveLower, ExclusiveUpper, T]
   type ExLowInUp[T] = Intersection[ExclusiveLower, InclusiveUpper, T]
 
-  implicit def monoid[T]: Monoid[Interval[T]] = Monoid.from[Interval[T]](Universe[T]()) { _ && _ }
+  implicit def monoid[T]: Monoid[Interval[T]] =
+    Monoid.from[Interval[T]](Universe[T]()) { _ && _ }
 
   // Automatically convert from an either
-  implicit def fromEither[L[t] <: Interval[t], R[t] <: Interval[t], T](either: Either[L[T], R[T]]): Interval[T] =
+  implicit def fromEither[L[t] <: Interval[t], R[t] <: Interval[t], T](
+      either: Either[L[T], R[T]]
+  ): Interval[T] =
     either match {
       case Right(i) => i
       case Left(i) => i
     }
 
-  def leftClosedRightOpen[T: Ordering](lower: T, upper: T): Either[Empty[T], InLowExUp[T]] =
+  def leftClosedRightOpen[T: Ordering](
+      lower: T,
+      upper: T
+  ): Either[Empty[T], InLowExUp[T]] =
     if (Ordering[T].lt(lower, upper))
       Right(Intersection(InclusiveLower(lower), ExclusiveUpper(upper)))
     else Left(Empty())
 
-  def leftOpenRightClosed[T: Ordering](lower: T, upper: T): Either[Empty[T], ExLowInUp[T]] =
+  def leftOpenRightClosed[T: Ordering](
+      lower: T,
+      upper: T
+  ): Either[Empty[T], ExLowInUp[T]] =
     if (Ordering[T].lt(lower, upper))
       Right(Intersection(ExclusiveLower(lower), InclusiveUpper(upper)))
     else Left(Empty())
@@ -79,25 +88,28 @@ object Interval extends java.io.Serializable {
 // Marker traits to keep lower on the left in Intersection
 sealed trait Lower[T] extends Interval[T] {
   def ordering: Ordering[T]
+
   /**
-   * This may give a false positive (but should try not to).
-   * Note the case of (0,1) for the integers. If they were doubles,
-   * this would intersect, but since there are no members of the
-   * set Int that are bigger than 0 and less than 1, they don't really
-   * intersect. So, ordering is not enough here. You need a stronger
-   * notion, which we don't have a typeclass for.
-   */
+    * This may give a false positive (but should try not to).
+    * Note the case of (0,1) for the integers. If they were doubles,
+    * this would intersect, but since there are no members of the
+    * set Int that are bigger than 0 and less than 1, they don't really
+    * intersect. So, ordering is not enough here. You need a stronger
+    * notion, which we don't have a typeclass for.
+    */
   def intersects(u: Upper[T]): Boolean
+
   /**
-   * The smallest value that is contained here
-   * This is an Option, because of cases like ExclusiveLower(Int.MaxValue)
-   * which are pathological and equivalent to Empty
-   */
+    * The smallest value that is contained here
+    * This is an Option, because of cases like ExclusiveLower(Int.MaxValue)
+    * which are pathological and equivalent to Empty
+    */
   def least(implicit s: Successible[T]): Option[T]
   def strictLowerBound(implicit p: Predecessible[T]): Option[T]
+
   /**
-   * Iterates all the items in this Lower[T] from lowest to highest
-   */
+    * Iterates all the items in this Lower[T] from lowest to highest
+    */
   def toIterable(implicit s: Successible[T]): Iterable[T] =
     least match {
       case Some(l) => s.iterateNext(l)
@@ -106,17 +118,19 @@ sealed trait Lower[T] extends Interval[T] {
 }
 sealed trait Upper[T] extends Interval[T] {
   def ordering: Ordering[T]
+
   /**
-   * The smallest value that is contained here
-   * This is an Option, because of cases like ExclusiveUpper(Int.MinValue),
-   * which are pathological and equivalent to Empty
-   */
+    * The smallest value that is contained here
+    * This is an Option, because of cases like ExclusiveUpper(Int.MinValue),
+    * which are pathological and equivalent to Empty
+    */
   def greatest(implicit p: Predecessible[T]): Option[T]
   // The smallest value that is not present
   def strictUpperBound(implicit s: Successible[T]): Option[T]
+
   /**
-   * Iterates all the items in this Upper[T] from highest to lowest
-   */
+    * Iterates all the items in this Upper[T] from highest to lowest
+    */
   def toIterable(implicit p: Predecessible[T]): Iterable[T] =
     greatest match {
       case Some(g) => p.iteratePrev(g)
@@ -124,7 +138,9 @@ sealed trait Upper[T] extends Interval[T] {
     }
 }
 
-case class InclusiveLower[T](lower: T)(implicit val ordering: Ordering[T]) extends Interval[T] with Lower[T] {
+case class InclusiveLower[T](lower: T)(implicit val ordering: Ordering[T])
+    extends Interval[T]
+    with Lower[T] {
   def contains(t: T): Boolean = ordering.lteq(lower, t)
   def intersect(that: Interval[T]): Interval[T] = that match {
     case Universe() => this
@@ -133,8 +149,10 @@ case class InclusiveLower[T](lower: T)(implicit val ordering: Ordering[T]) exten
       if (intersects(ub)) Intersection(this, ub) else Empty()
     case ub @ ExclusiveUpper(upper) =>
       if (intersects(ub)) Intersection(this, ub) else Empty()
-    case lb @ InclusiveLower(thatlb) => if (lb.ordering.gt(lower, thatlb)) this else that
-    case lb @ ExclusiveLower(thatlb) => if (lb.ordering.gt(lower, thatlb)) this else that
+    case lb @ InclusiveLower(thatlb) =>
+      if (lb.ordering.gt(lower, thatlb)) this else that
+    case lb @ ExclusiveLower(thatlb) =>
+      if (lb.ordering.gt(lower, thatlb)) this else that
     case Intersection(thatL, thatU) => (this && thatL) && thatU
   }
   def intersects(u: Upper[T]): Boolean = u match {
@@ -143,9 +161,12 @@ case class InclusiveLower[T](lower: T)(implicit val ordering: Ordering[T]) exten
   }
   def least(implicit s: Successible[T]): Option[T] = Some(lower)
   def strictLowerBound(implicit p: Predecessible[T]): Option[T] = p.prev(lower)
-  def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U] = InclusiveLower(fn(lower))
+  def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U] =
+    InclusiveLower(fn(lower))
 }
-case class ExclusiveLower[T](lower: T)(implicit val ordering: Ordering[T]) extends Interval[T] with Lower[T] {
+case class ExclusiveLower[T](lower: T)(implicit val ordering: Ordering[T])
+    extends Interval[T]
+    with Lower[T] {
   def contains(t: T): Boolean = ordering.lt(lower, t)
   def intersect(that: Interval[T]): Interval[T] = that match {
     case Universe() => this
@@ -154,19 +175,25 @@ case class ExclusiveLower[T](lower: T)(implicit val ordering: Ordering[T]) exten
       if (intersects(ub)) Intersection(this, ub) else Empty()
     case ub @ ExclusiveUpper(upper) =>
       if (intersects(ub)) Intersection(this, ub) else Empty()
-    case lb @ InclusiveLower(thatlb) => if (lb.ordering.gteq(lower, thatlb)) this else that
-    case lb @ ExclusiveLower(thatlb) => if (lb.ordering.gteq(lower, thatlb)) this else that
+    case lb @ InclusiveLower(thatlb) =>
+      if (lb.ordering.gteq(lower, thatlb)) this else that
+    case lb @ ExclusiveLower(thatlb) =>
+      if (lb.ordering.gteq(lower, thatlb)) this else that
     case Intersection(thatL, thatU) => (this && thatL) && thatU
   }
   def intersects(u: Upper[T]): Boolean = u match {
     case InclusiveUpper(upper) => ordering.lt(lower, upper)
-    case ExclusiveUpper(upper) => ordering.lt(lower, upper) // This is a false positive for (x, next(x))
+    case ExclusiveUpper(upper) =>
+      ordering.lt(lower, upper) // This is a false positive for (x, next(x))
   }
   def least(implicit s: Successible[T]): Option[T] = s.next(lower)
   def strictLowerBound(implicit p: Predecessible[T]): Option[T] = Some(lower)
-  def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U] = ExclusiveLower(fn(lower))
+  def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U] =
+    ExclusiveLower(fn(lower))
 }
-case class InclusiveUpper[T](upper: T)(implicit val ordering: Ordering[T]) extends Interval[T] with Upper[T] {
+case class InclusiveUpper[T](upper: T)(implicit val ordering: Ordering[T])
+    extends Interval[T]
+    with Upper[T] {
   def contains(t: T): Boolean = ordering.lteq(t, upper)
   def greatest(implicit p: Predecessible[T]): Option[T] = Some(upper)
   // The smallest value that is not present
@@ -184,9 +211,12 @@ case class InclusiveUpper[T](upper: T)(implicit val ordering: Ordering[T]) exten
       if (ub.ordering.lt(upper, thatub)) this else that
     case Intersection(thatL, thatU) => thatL && (this && thatU)
   }
-  def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U] = InclusiveUpper(fn(upper))
+  def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U] =
+    InclusiveUpper(fn(upper))
 }
-case class ExclusiveUpper[T](upper: T)(implicit val ordering: Ordering[T]) extends Interval[T] with Upper[T] {
+case class ExclusiveUpper[T](upper: T)(implicit val ordering: Ordering[T])
+    extends Interval[T]
+    with Upper[T] {
   def contains(t: T): Boolean = ordering.lt(t, upper)
   def greatest(implicit p: Predecessible[T]): Option[T] = p.prev(upper)
   // The smallest value that is not present
@@ -204,11 +234,18 @@ case class ExclusiveUpper[T](upper: T)(implicit val ordering: Ordering[T]) exten
       if (ub.ordering.lteq(upper, thatub)) this else that
     case Intersection(thatL, thatU) => thatL && (this && thatU)
   }
-  def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U] = ExclusiveUpper(fn(upper))
+  def mapNonDecreasing[U: Ordering](fn: T => U): Interval[U] =
+    ExclusiveUpper(fn(upper))
 }
 
-case class Intersection[L[t] <: Lower[t], U[t] <: Upper[t], T](lower: L[T], upper: U[T]) extends Interval[T] {
-  require(lower.intersects(upper), "Intersections must be non-empty: (%s, %s)".format(lower, upper))
+case class Intersection[L[t] <: Lower[t], U[t] <: Upper[t], T](
+    lower: L[T],
+    upper: U[T]
+) extends Interval[T] {
+  require(
+    lower.intersects(upper),
+    "Intersections must be non-empty: (%s, %s)".format(lower, upper)
+  )
   def contains(t: T): Boolean = lower.contains(t) && upper.contains(t)
   def intersect(that: Interval[T]): Interval[T] = that match {
     case Universe() => this
@@ -223,9 +260,9 @@ case class Intersection[L[t] <: Lower[t], U[t] <: Upper[t], T](lower: L[T], uppe
     lower.mapNonDecreasing(fn) && upper.mapNonDecreasing(fn)
 
   /**
-   * Goes from lowest to highest for all items
-   * that are contained in this Intersection
-   */
+    * Goes from lowest to highest for all items
+    * that are contained in this Intersection
+    */
   def leastToGreatest(implicit s: Successible[T]): Iterable[T] = {
     val self = this
     // TODO https://github.com/twitter/algebird/issues/263
@@ -234,10 +271,11 @@ case class Intersection[L[t] <: Lower[t], U[t] <: Upper[t], T](lower: L[T], uppe
       def iterator = lower.toIterable.iterator.takeWhile(self.upper.contains(_))
     }
   }
+
   /**
-   * Goes from highest to lowest for all items
-   * that are contained in this Intersection
-   */
+    * Goes from highest to lowest for all items
+    * that are contained in this Intersection
+    */
   def greatestToLeast(implicit p: Predecessible[T]): Iterable[T] = {
     val self = this
     // TODO https://github.com/twitter/algebird/issues/263
@@ -248,16 +286,18 @@ case class Intersection[L[t] <: Lower[t], U[t] <: Upper[t], T](lower: L[T], uppe
   }
 
   /**
-   * Some intervals can actually be synonyms for empty:
-   * (0,0) for instance, contains nothing. This cannot be normalized to
-   * [a, b) form, thus we return an option
-   * Also, there are cases like [Int.MinValue, Int.MaxValue] that cannot
-   * are actually equivalent to Universe.
-   * The bottom line: if this returns None, it just means you can't express
-   * it this way, it does not mean it is empty or universe, etc... (there
-   * are other cases).
-   */
-  def toLeftClosedRightOpen(implicit s: Successible[T]): Option[Intersection[InclusiveLower, ExclusiveUpper, T]] = {
+    * Some intervals can actually be synonyms for empty:
+    * (0,0) for instance, contains nothing. This cannot be normalized to
+    * [a, b) form, thus we return an option
+    * Also, there are cases like [Int.MinValue, Int.MaxValue] that cannot
+    * are actually equivalent to Universe.
+    * The bottom line: if this returns None, it just means you can't express
+    * it this way, it does not mean it is empty or universe, etc... (there
+    * are other cases).
+    */
+  def toLeftClosedRightOpen(
+      implicit s: Successible[T]
+  ): Option[Intersection[InclusiveLower, ExclusiveUpper, T]] = {
     implicit val ord = lower.ordering
     for {
       l <- lower.least

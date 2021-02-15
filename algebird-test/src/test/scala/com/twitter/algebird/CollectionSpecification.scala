@@ -1,22 +1,38 @@
 package com.twitter.algebird
 
-import org.scalacheck.{ Arbitrary, Gen }
+import org.scalacheck.{Arbitrary, Gen}
 
-import scala.collection.mutable.{ Map => MMap }
-import scala.collection.{ Map => ScMap }
+import scala.collection.mutable.{Map => MMap}
+import scala.collection.{Map => ScMap}
 import org.scalacheck.Prop._
 
 class CollectionSpecification extends CheckProperties {
   import com.twitter.algebird.BaseProperties._
 
   implicit def arbMin[T: Arbitrary]: Arbitrary[Min[T]] =
-    Arbitrary { implicitly[Arbitrary[T]].arbitrary.map{ x => Min(x) } }
+    Arbitrary {
+      implicitly[Arbitrary[T]].arbitrary.map { x =>
+        Min(x)
+      }
+    }
   implicit def arbMax[T: Arbitrary]: Arbitrary[Max[T]] =
-    Arbitrary { implicitly[Arbitrary[T]].arbitrary.map{ x => Max(x) } }
+    Arbitrary {
+      implicitly[Arbitrary[T]].arbitrary.map { x =>
+        Max(x)
+      }
+    }
   implicit def arbOrVal: Arbitrary[OrVal] =
-    Arbitrary { implicitly[Arbitrary[Boolean]].arbitrary.map{ b => OrVal(b) } }
+    Arbitrary {
+      implicitly[Arbitrary[Boolean]].arbitrary.map { b =>
+        OrVal(b)
+      }
+    }
   implicit def arbAndVal: Arbitrary[AndVal] =
-    Arbitrary { implicitly[Arbitrary[Boolean]].arbitrary.map{ b => AndVal(b) } }
+    Arbitrary {
+      implicitly[Arbitrary[Boolean]].arbitrary.map { b =>
+        AndVal(b)
+      }
+    }
 
   property("MinSemigroup is a commutative semigroup") {
     commutativeSemigroupLaws[Min[Int]]
@@ -59,7 +75,7 @@ class CollectionSpecification extends CheckProperties {
   }
 
   property("Option Group laws") {
-    groupLaws[Option[Int]] && groupLawsEq[Map[String, Option[Int]]]{
+    groupLaws[Option[Int]] && groupLawsEq[Map[String, Option[Int]]] {
       (a: Map[String, Option[Int]], b: Map[String, Option[Int]]) =>
         val keys: Set[String] = a.keySet | b.keySet
         keys.forall { key: String =>
@@ -96,7 +112,7 @@ class CollectionSpecification extends CheckProperties {
   }
 
   property("Array Monoid laws") {
-    monoidLawsEq[Array[Int]]{
+    monoidLawsEq[Array[Int]] {
       case (a, b) => a.deep == b.deep
     }
   }
@@ -114,29 +130,39 @@ class CollectionSpecification extends CheckProperties {
 
   implicit def mapArb[K: Arbitrary, V: Arbitrary: Monoid] = Arbitrary {
     val mv = implicitly[Monoid[V]]
-    implicitly[Arbitrary[Map[K, V]]]
-      .arbitrary
-      .map { _.filter { kv => mv.isNonZero(kv._2) } }
+    implicitly[Arbitrary[Map[K, V]]].arbitrary
+      .map {
+        _.filter { kv =>
+          mv.isNonZero(kv._2)
+        }
+      }
   }
 
   implicit def scMapArb[K: Arbitrary, V: Arbitrary: Monoid] = Arbitrary {
-    mapArb[K, V]
-      .arbitrary
-      .map { map: Map[K, V] => map: ScMap[K, V] }
+    mapArb[K, V].arbitrary
+      .map { map: Map[K, V] =>
+        map: ScMap[K, V]
+      }
   }
 
   implicit def mMapArb[K: Arbitrary, V: Arbitrary: Monoid] = Arbitrary {
-    mapArb[K, V]
-      .arbitrary
-      .map { map: Map[K, V] => MMap(map.toSeq: _*): MMap[K, V] }
+    mapArb[K, V].arbitrary
+      .map { map: Map[K, V] =>
+        MMap(map.toSeq: _*): MMap[K, V]
+      }
   }
 
-  def mapPlusTimesKeys[M <: ScMap[Int, Int]](implicit rng: Ring[ScMap[Int, Int]], arbMap: Arbitrary[M]) = {
+  def mapPlusTimesKeys[M <: ScMap[Int, Int]](
+      implicit rng: Ring[ScMap[Int, Int]],
+      arbMap: Arbitrary[M]
+  ) = {
     forAll { (a: M, b: M) =>
       // Subsets because zeros are removed from the times/plus values
       ((rng.times(a, b)).keys.toSet.subsetOf((a.keys.toSet & b.keys.toSet)) &&
-        (rng.plus(a, b)).keys.toSet.subsetOf((a.keys.toSet | b.keys.toSet)) &&
-        (rng.plus(a, a).keys == (a.filter { kv => (kv._2 + kv._2) != 0 }).keys))
+      (rng.plus(a, b)).keys.toSet.subsetOf((a.keys.toSet | b.keys.toSet)) &&
+      (rng.plus(a, a).keys == (a.filter { kv =>
+        (kv._2 + kv._2) != 0
+      }).keys))
     }
   }
 
@@ -161,7 +187,10 @@ class CollectionSpecification extends CheckProperties {
   }
 
   property("MMap[Int,Int] Monoid laws") {
-    isAssociativeDifferentTypes[ScMap[Int, Int], MMap[Int, Int]] && weakZeroDifferentTypes[ScMap[Int, Int], MMap[Int, Int]]
+    isAssociativeDifferentTypes[ScMap[Int, Int], MMap[Int, Int]] && weakZeroDifferentTypes[
+      ScMap[Int, Int],
+      MMap[Int, Int]
+    ]
   }
 
   property("Map[Int,Int] has -") {
@@ -185,7 +214,10 @@ class CollectionSpecification extends CheckProperties {
   }
 
   property("MMap[Int,String] Monoid laws") {
-    isAssociativeDifferentTypes[ScMap[Int, Int], MMap[Int, Int]] && weakZeroDifferentTypes[ScMap[Int, Int], MMap[Int, Int]]
+    isAssociativeDifferentTypes[ScMap[Int, Int], MMap[Int, Int]] && weakZeroDifferentTypes[
+      ScMap[Int, Int],
+      MMap[Int, Int]
+    ]
   }
 
   // We haven't implemented ring.one yet for the Map, so skip the one property
@@ -202,7 +234,9 @@ class CollectionSpecification extends CheckProperties {
   }
 
   implicit def arbIndexedSeq[T: Arbitrary]: Arbitrary[IndexedSeq[T]] =
-    Arbitrary { implicitly[Arbitrary[List[T]]].arbitrary.map { _.toIndexedSeq } }
+    Arbitrary {
+      implicitly[Arbitrary[List[T]]].arbitrary.map { _.toIndexedSeq }
+    }
 
   property("IndexedSeq (of a Semigroup) is a semigroup") {
     semigroupLaws[IndexedSeq[Max[Int]]]
@@ -235,9 +269,12 @@ class CollectionSpecification extends CheckProperties {
       import com.twitter.algebird.Operators._
       val tupList = keys.zip(values)
       (tupList.sumByKey.filter { _._2 != 0 } ==
-        tupList.groupBy { _._1 }
-        .mapValues { v => v.map { _._2 }.sum }
-        .filter { _._2 != 0 })
+        tupList
+          .groupBy { _._1 }
+          .mapValues { v =>
+            v.map { _._2 }.sum
+          }
+          .filter { _._2 != 0 })
     }
   }
 
@@ -245,13 +282,24 @@ class CollectionSpecification extends CheckProperties {
     forAll { (m1: Map[Int, Int], m2: Map[Int, Int]) =>
       // .toList below is to make sure we don't remove duplicate values
       (MapAlgebra.dot(m1, m2) ==
-        (m1.keySet ++ m2.keySet).toList.map { k => m1.getOrElse(k, 0) * m2.getOrElse(k, 0) }.sum)
+        (m1.keySet ++ m2.keySet).toList.map { k =>
+          m1.getOrElse(k, 0) * m2.getOrElse(k, 0)
+        }.sum)
     }
   }
 
   property("MapAlgebra.toGraph is correct") {
     forAll { (l: Set[(Int, Int)]) =>
-      (MapAlgebra.toGraph(l).toIterable.flatMap { case (k, sv) => sv.map { v => (k, v) } }.toSet == l)
+      (MapAlgebra
+        .toGraph(l)
+        .toIterable
+        .flatMap {
+          case (k, sv) =>
+            sv.map { v =>
+              (k, v)
+            }
+        }
+        .toSet == l)
     }
   }
 
@@ -259,9 +307,8 @@ class CollectionSpecification extends CheckProperties {
     forAll { (l: Map[Int, String], empties: Set[Int]) =>
       (!empties.isEmpty) ==> {
         val mapEq = MapAlgebra.sparseEquiv[Int, String]
-        mapEq.equiv(l -- empties, l ++ empties.map(_ -> "").toMap) && !mapEq.equiv(
-          l -- empties,
-          l ++ empties.map(_ -> "not empty").toMap)
+        mapEq.equiv(l -- empties, l ++ empties.map(_ -> "").toMap) && !mapEq
+          .equiv(l -- empties, l ++ empties.map(_ -> "not empty").toMap)
       }
     }
   }
@@ -269,22 +316,36 @@ class CollectionSpecification extends CheckProperties {
   property("MapAlgebra.invert works") {
     forAll { (m: Map[Int, Int]) =>
       val m2 = MapAlgebra.invert(m)
-      val m3 = Monoid.sum(for ((v, ks) <- m2.toIterable; k <- ks.toIterable) yield Map(k -> v))
+      val m3 = Monoid.sum(
+        for ((v, ks) <- m2.toIterable; k <- ks.toIterable) yield Map(k -> v)
+      )
       (m3 == m)
     }
   }
 
   property("MapAlgebra.invertExact works") {
     forAll { (m: Map[Option[Int], Set[Int]]) =>
-      (MapAlgebra.invertExact(MapAlgebra.invertExact(m)) == m.filterKeys(_.isDefined))
+      (MapAlgebra.invertExact(MapAlgebra.invertExact(m)) == m.filterKeys(
+        _.isDefined
+      ))
     }
   }
 
   property("MapAlgebra.join works") {
     forAll { (m1: Map[Int, Int], m2: Map[Int, Int]) =>
       val m3 = MapAlgebra.join(m1, m2)
-      val m1after = m3.mapValues { vw => vw._1 }.filter { _._2.isDefined }.mapValues { _.get }
-      val m2after = m3.mapValues { vw => vw._2 }.filter { _._2.isDefined }.mapValues { _.get }
+      val m1after = m3
+        .mapValues { vw =>
+          vw._1
+        }
+        .filter { _._2.isDefined }
+        .mapValues { _.get }
+      val m2after = m3
+        .mapValues { vw =>
+          vw._2
+        }
+        .filter { _._2.isDefined }
+        .mapValues { _.get }
       val m1Orm2 = (m1.keySet | m2.keySet)
       ((m1after == m1) && (m2after == m2) && (m3.keySet == m1Orm2))
     }
@@ -298,10 +359,13 @@ class CollectionSpecification extends CheckProperties {
       (mapEq.equiv(
         MapAlgebra.mergeLookup[Int, Option[Int], Int](items)(square)(_ => None),
         Map(
-          (None: Option[Int]) -> Monoid.sum(items.map(x => square(x).getOrElse(0))))) && mapEq.equiv(
-          MapAlgebra.mergeLookup[Int, Int, Int](items)(square)(identity),
-          MapAlgebra.sumByKey(
-            items.map(x => x -> square(x).getOrElse(0)))))
+          (None: Option[Int]) -> Monoid
+            .sum(items.map(x => square(x).getOrElse(0)))
+        )
+      ) && mapEq.equiv(
+        MapAlgebra.mergeLookup[Int, Int, Int](items)(square)(identity),
+        MapAlgebra.sumByKey(items.map(x => x -> square(x).getOrElse(0)))
+      ))
     }
   }
 
@@ -312,8 +376,10 @@ class CollectionSpecification extends CheckProperties {
       } yield AdaptiveVector.fromVector(Vector(l: _*), sparse),
       for {
         m <- Arbitrary.arbitrary[Map[Int, T]]
-      } yield AdaptiveVector.fromMap(m.filter{ case (k, _) => (k < 1000) && (k >= 0) },
-        sparse, 1000))
+      } yield AdaptiveVector.fromMap(m.filter {
+        case (k, _) => (k < 1000) && (k >= 0)
+      }, sparse, 1000)
+    )
 
   property("AdaptiveVector[Int] has a semigroup") {
     implicit val arb = Arbitrary(arbAV(2))

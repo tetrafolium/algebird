@@ -1,19 +1,21 @@
 package com.twitter.algebird.macros
 
-import scala.language.experimental.{ macros => sMacros }
+import scala.language.experimental.{macros => sMacros}
 import scala.reflect.macros.Context
 import scala.reflect.runtime.universe._
 
 import com.twitter.algebird._
 
 object GroupMacro {
-  def caseClassGroup[T](c: Context)(implicit T: c.WeakTypeTag[T]): c.Expr[Group[T]] = {
+  def caseClassGroup[T](
+      c: Context
+  )(implicit T: c.WeakTypeTag[T]): c.Expr[Group[T]] = {
     import c.universe._
 
     ensureCaseClass(c)
 
-    val implicitGroups = getParams(c).map {
-      param => q"implicitly[_root_.com.twitter.algebird.Group[${param.returnType}]]"
+    val implicitGroups = getParams(c).map { param =>
+      q"implicitly[_root_.com.twitter.algebird.Group[${param.returnType}]]"
     }
 
     val res = q"""
@@ -28,7 +30,9 @@ object GroupMacro {
     c.Expr[Group[T]](res)
   }
 
-  def negate[T](c: Context)(implicitInstances: List[c.Tree])(implicit T: c.WeakTypeTag[T]): c.Tree = {
+  def negate[T](
+      c: Context
+  )(implicitInstances: List[c.Tree])(implicit T: c.WeakTypeTag[T]): c.Tree = {
     import c.universe._
 
     val companion = getCompanionObject(c)
@@ -39,7 +43,9 @@ object GroupMacro {
     q"override def negate(x: $T): $T = $companion.apply(..$negateList)"
   }
 
-  def minus[T](c: Context)(implicitInstances: List[c.Tree])(implicit T: c.WeakTypeTag[T]): c.Tree = {
+  def minus[T](
+      c: Context
+  )(implicitInstances: List[c.Tree])(implicit T: c.WeakTypeTag[T]): c.Tree = {
     import c.universe._
 
     val companion = getCompanionObject(c)

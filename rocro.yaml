@@ -45,6 +45,7 @@ inspecode:
     - name: yamllint
       type: docker-build
       dockerfile: "rocro-yamllint.Dockerfile"
+      pre-tasks: [hadolint]
       options:
         --build-arg:
           OUTDIR=/.reports

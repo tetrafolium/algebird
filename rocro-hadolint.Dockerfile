@@ -4,10 +4,12 @@ FROM golang:1.15-alpine AS hadolint-task
 RUN apk add --update --no-cache curl git
 
 ### Install hadolint ...
-ENV HADOLINT_VERSION="v1.18.0"
+ENV HADOLINT_ARCHDIR="https://github.com/hadolint/hadolint/releases/download" \
+    HADOLINT_ARCHNAME="hadolint-$(uname -s)-$(uname -m)" \
+    HADOLINT_VERSION="v1.18.0"
 RUN echo "+++ $(uname -s)-$(uname -m)"
 RUN curl -sL -o /usr/bin/hadolint \
-         "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-$(uname -s)-$(uname -m)" \
+         "${HADOLINT_ARCHDIR}/${HADOLINT_VERSION}/${HADOLINT_ARCHNAME}" \
  && chmod 755 /usr/bin/hadolint
 
 ENV GOBIN="$GOROOT/bin" \

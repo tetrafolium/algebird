@@ -5,11 +5,10 @@ RUN apk add --update --no-cache curl git
 
 ### Install hadolint ...
 ENV HADOLINT_ARCHDIR="https://github.com/hadolint/hadolint/releases/download" \
-    HADOLINT_ARCHNAME="hadolint-$(uname -s)-$(uname -m)" \
     HADOLINT_VERSION="v1.18.0"
-RUN echo "+++ $(uname -s)-$(uname -m)"
+RUN echo "+++ ${HADOLINT_ARCHDIR}/${HADOLINT_VERSION}/hadolint-$(uname -s)-$(uname -m)"
 RUN curl -sL -o /usr/bin/hadolint \
-         "${HADOLINT_ARCHDIR}/${HADOLINT_VERSION}/${HADOLINT_ARCHNAME}" \
+         "${HADOLINT_ARCHDIR}/${HADOLINT_VERSION}/hadolint-$(uname -s)-$(uname -m)" \
  && chmod 755 /usr/bin/hadolint
 
 ENV GOBIN="$GOROOT/bin" \

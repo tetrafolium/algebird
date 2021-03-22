@@ -7,137 +7,137 @@ inspecode:
 
     - name: dockerfilelint
       type: docker-build
-      dockerfile: "rocro-dockerfilelint.Dockerfile"
+      dockerfile: 'rocro-dockerfilelint.Dockerfile'
       options:
         --build-arg:
           OUTDIR=/.reports
       artifacts:
         - from: dockerfilelint-task
-          path: "/.reports/dockerfilelint.json"
+          path: '/.reports/dockerfilelint.json'
         - from: dockerfilelint-task
-          path: "/.reports/dockerfilelint.sarif"
+          path: '/.reports/dockerfilelint.sarif'
       reports:
         - from: dockerfilelint-task
-          path: "/.reports/dockerfilelint.sarif"
+          path: '/.reports/dockerfilelint.sarif'
           format:
             type: SARIF
       thresholds: {num-issues: 1}
 
     - name: dockerfilelint-1
       type: docker-build
-      dockerfile: "rocro-dockerfilelint.Dockerfile"
+      dockerfile: 'rocro-dockerfilelint.Dockerfile'
       pre-tasks: [hadolint-1, yamllint-1]
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: dockerfilelint-task, path: "/.reports/"}
-      reports: {from: dockerfilelint-task, path: "/.reports/dockerfilelint.sarif"}
+      artifacts: {from: dockerfilelint-task, path: '/.reports/'}
+      reports: {from: dockerfilelint-task, path: '/.reports/dockerfilelint.sarif'}
       thresholds: {num-issues: 1}
 
     - name: dockerfilelint-2
       type: docker-build
-      dockerfile: "rocro-dockerfilelint.Dockerfile"
+      dockerfile: 'rocro-dockerfilelint.Dockerfile'
       pre-tasks: hadolint
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: dockerfilelint-task, path: "/.reports/"}
-      reports: {from: dockerfilelint-task, path: "/.reports/dockerfilelint.sarif"}
+      artifacts: {from: dockerfilelint-task, path: '/.reports/'}
+      reports: {from: dockerfilelint-task, path: '/.reports/dockerfilelint.sarif'}
       thresholds: {num-issues: 1}
 
     - name: dockerfilelint-3
       type: docker-build
-      dockerfile: "rocro-dockerfilelint.Dockerfile"
+      dockerfile: 'rocro-dockerfilelint.Dockerfile'
       pre-tasks: yamllint
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: dockerfilelint-task, path: "/.reports/"}
-      reports: {from: dockerfilelint-task, path: "/.reports/dockerfilelint.sarif"}
+      artifacts: {from: dockerfilelint-task, path: '/.reports/'}
+      reports: {from: dockerfilelint-task, path: '/.reports/dockerfilelint.sarif'}
       thresholds: {num-issues: 1}
 
     - name: hadolint
       type: docker-build
-      dockerfile: "rocro-hadolint.Dockerfile"
+      dockerfile: 'rocro-hadolint.Dockerfile'
       options:
         --build-arg:
           OUTDIR=/.reports
       artifacts:
         - from: hadolint-task
-          path: "/.reports/hadolint.json"
+          path: '/.reports/hadolint.json'
         - from: hadolint-task
-          path: "/.reports/hadolint.sarif"
+          path: '/.reports/hadolint.sarif'
       reports:
         - from: hadolint-task
-          path: "/.reports/hadolint.sarif"
+          path: '/.reports/hadolint.sarif'
           format:
             type: SARIF
       thresholds: {num-issues: 10}
 
     - name: hadolint-1
       type: docker-build
-      dockerfile: "rocro-hadolint.Dockerfile"
+      dockerfile: 'rocro-hadolint.Dockerfile'
       pre-tasks: dockerfilelint
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: hadolint-task, path: "/.reports/"}
-      reports: {from: hadolint-task, path: "/.reports/hadolint.sarif"}
+      artifacts: {from: hadolint-task, path: '/.reports/'}
+      reports: {from: hadolint-task, path: '/.reports/hadolint.sarif'}
       thresholds: {num-issues: 10}
 
     - name: hadolint-2
       type: docker-build
-      dockerfile: "rocro-hadolint.Dockerfile"
+      dockerfile: 'rocro-hadolint.Dockerfile'
       pre-tasks: [yamllint-2, dockerfilelint-2]
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: hadolint-task, path: "/.reports/"}
-      reports: {from: hadolint-task, path: "/.reports/hadolint.sarif"}
+      artifacts: {from: hadolint-task, path: '/.reports/'}
+      reports: {from: hadolint-task, path: '/.reports/hadolint.sarif'}
       thresholds: {num-issues: 10}
 
     - name: hadolint-3
       type: docker-build
-      dockerfile: "rocro-hadolint.Dockerfile"
+      dockerfile: 'rocro-hadolint.Dockerfile'
       pre-tasks: yamllint
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: hadolint-task, path: "/.reports/"}
-      reports: {from: hadolint-task, path: "/.reports/hadolint.sarif"}
+      artifacts: {from: hadolint-task, path: '/.reports/'}
+      reports: {from: hadolint-task, path: '/.reports/hadolint.sarif'}
       thresholds: {num-issues: 10}
 
     - name: yamllint
       type: docker-build
-      dockerfile: "rocro-yamllint.Dockerfile"
+      dockerfile: 'rocro-yamllint.Dockerfile'
       options:
         --build-arg:
           OUTDIR=/.reports
       artifacts:
         - from: yamllint-task
-          path: "/.reports/yamllint.issues"
+          path: '/.reports/yamllint.issues'
         - from: yamllint-task
-          path: "/.reports/yamllint.sarif"
+          path: '/.reports/yamllint.sarif'
       reports:
         - from: yamllint-task
-          path: "/.reports/yamllint.sarif"
+          path: '/.reports/yamllint.sarif'
           format:
             type: SARIF
       thresholds: {num-issues: 4}
 
     - name: yamllint-1
       type: docker-build
-      dockerfile: "rocro-yamllint.Dockerfile"
+      dockerfile: 'rocro-yamllint.Dockerfile'
       pre-tasks: dockerfilelint
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: yamllint-task, path: "/.reports/"}
-      reports: {from: yamllint-task, path: "/.reports/yamllint.sarif"}
+      artifacts: {from: yamllint-task, path: '/.reports/'}
+      reports: {from: yamllint-task, path: '/.reports/yamllint.sarif'}
       thresholds: {num-issues: 4}
 
     - name: yamllint-2
       type: docker-build
-      dockerfile: "rocro-yamllint.Dockerfile"
+      dockerfile: 'rocro-yamllint.Dockerfile'
       pre-tasks: hadolint
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: yamllint-task, path: "/.reports/"}
-      reports: {from: yamllint-task, path: "/.reports/yamllint.sarif"}
+      artifacts: {from: yamllint-task, path: '/.reports/'}
+      reports: {from: yamllint-task, path: '/.reports/yamllint.sarif'}
       thresholds: {num-issues: 4}
 
     - name: yamllint-3
       type: docker-build
-      dockerfile: "rocro-yamllint.Dockerfile"
+      dockerfile: 'rocro-yamllint.Dockerfile'
       pre-tasks: [dockerfilelint-3, hadolint-3]
       options: {--build-arg: OUTDIR=/.reports}
-      artifacts: {from: yamllint-task, path: "/.reports/"}
-      reports: {from: yamllint-task, path: "/.reports/yamllint.sarif"}
+      artifacts: {from: yamllint-task, path: '/.reports/'}
+      reports: {from: yamllint-task, path: '/.reports/yamllint.sarif'}
       thresholds: {num-issues: 4}
 
   tools:
@@ -155,8 +155,8 @@ inspecode:
 
     jscpd:
       ignore:
-        - '**/test/'  # 24 issues
-      thresholds: {num-issues: 16}
+        - '**/test/'
+      thresholds: {num-issues: 18}
 
     misspell:
       auto-fix: true

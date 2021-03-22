@@ -2,10 +2,10 @@ package com.twitter.algebird
 
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import org.scalacheck.{ Gen, Arbitrary }
+import org.scalacheck.{Gen, Arbitrary}
 
 object SketchMapTestImplicits {
-  val DELTA = 1E-8
+  val DELTA = 1e-8
   val EPS = 0.001
   val SEED = 1
   val HEAVY_HITTERS_COUNT = 10
@@ -26,7 +26,7 @@ class SketchMapLaws extends CheckProperties {
   property("SketchMap is a Monoid") {
     commutativeMonoidLawsEq[SketchMap[Int, Long]] { (left, right) =>
       (left.valuesTable == right.valuesTable) &&
-        (left.totalValue == right.totalValue)
+      (left.totalValue == right.totalValue)
     }
   }
 }
@@ -43,7 +43,9 @@ class SketchMapTest extends WordSpec with Matchers {
     "count total number of elements in a stream" in {
       val totalCount = 1243
       val range = 234
-      val data = (0 to (totalCount - 1)).map { _ => (RAND.nextInt(range), 1L) }
+      val data = (0 to (totalCount - 1)).map { _ =>
+        (RAND.nextInt(range), 1L)
+      }
       val sm = MONOID.create(data)
       assert(sm.totalValue == totalCount)
     }
@@ -119,7 +121,8 @@ class SketchMapTest extends WordSpec with Matchers {
       // are the smallest numbers).
       val smallerOrdering: Ordering[Long] = Ordering.by[Long, Long] { -_ }
 
-      val monoid = SketchMap.monoid[Int, Long](PARAMS)(smallerOrdering, smallerMonoid)
+      val monoid =
+        SketchMap.monoid[Int, Long](PARAMS)(smallerOrdering, smallerMonoid)
 
       val sm1 = monoid.create((100, 10L))
       assert(monoid.heavyHitters(sm1) == List((100, 10L)))
@@ -133,7 +136,10 @@ class SketchMapTest extends WordSpec with Matchers {
       assert(monoid.heavyHitters(sm3) == List((100, 5L)))
 
       // Try more than one at a time.
-      val sm4 = monoid.plus(sm3, monoid.create(Seq((100, 100L), (200, 30L), (200, 20L), (200, 10L))))
+      val sm4 = monoid.plus(
+        sm3,
+        monoid.create(Seq((100, 100L), (200, 30L), (200, 20L), (200, 10L)))
+      )
       assert(monoid.heavyHitters(sm4) == List((100, 5L), (200, 10L)))
     }
 

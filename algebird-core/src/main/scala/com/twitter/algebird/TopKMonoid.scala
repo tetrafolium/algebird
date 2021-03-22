@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
 import scala.annotation.tailrec
@@ -22,8 +22,12 @@ case class TopK[N](size: Int, items: List[N], max: Option[N])
 object TopKMonoid extends java.io.Serializable {
   // Does a merge sort and returns the reversed list
   @tailrec
-  private[algebird] def mergeSortR[T](acc: List[T], list1: List[T], list2: List[T],
-    cnt: Int)(implicit ord: Ordering[T]): List[T] = {
+  private[algebird] def mergeSortR[T](
+      acc: List[T],
+      list1: List[T],
+      list2: List[T],
+      cnt: Int
+  )(implicit ord: Ordering[T]): List[T] = {
     (list1, list2, cnt) match {
       case (_, _, 0) => acc
       case (x1 :: t1, x2 :: t2, _) => {
@@ -41,13 +45,13 @@ object TopKMonoid extends java.io.Serializable {
 }
 
 /**
- * A top-k monoid that is much faster than SortedListTake
- * equivalent to: (left ++ right).sorted.take(k)
- * but doesn't do a total sort
- * If you can handle the mutability, mutable.PriorityQueueMonoid is even faster.
- *
- * NOTE!!!! This assumes the inputs are already sorted! resorting each time kills speed
- */
+  * A top-k monoid that is much faster than SortedListTake
+  * equivalent to: (left ++ right).sorted.take(k)
+  * but doesn't do a total sort
+  * If you can handle the mutability, mutable.PriorityQueueMonoid is even faster.
+  *
+  * NOTE!!!! This assumes the inputs are already sorted! resorting each time kills speed
+  */
 class TopKMonoid[T](k: Int)(implicit ord: Ordering[T]) extends Monoid[TopK[T]] {
 
   require(k > 0, "TopK requires at least K>0")
@@ -55,16 +59,20 @@ class TopKMonoid[T](k: Int)(implicit ord: Ordering[T]) extends Monoid[TopK[T]] {
   override lazy val zero = TopK[T](0, List[T](), None)
 
   def build(t: T): TopK[T] = TopK(1, List(t), Some(t))
-  def build(ts: Iterable[T]): TopK[T] = ts.foldLeft(zero) { (acc, t) => plus(acc, build(t)) }
+  def build(ts: Iterable[T]): TopK[T] = ts.foldLeft(zero) { (acc, t) =>
+    plus(acc, build(t))
+  }
 
   override def plus(left: TopK[T], right: TopK[T]): TopK[T] = {
-    val (bigger, smaller) = if (left.size >= right.size) (left, right) else (right, left)
+    val (bigger, smaller) =
+      if (left.size >= right.size) (left, right) else (right, left)
     if (smaller.size == 0) {
       bigger
     } else if (bigger.size == k) {
       // See if we can just return the bigger:
-      val biggerWins = for (biggest <- bigger.max; smallest <- smaller.items.headOption)
-        yield (ord.lteq(biggest, smallest))
+      val biggerWins =
+        for (biggest <- bigger.max; smallest <- smaller.items.headOption)
+          yield (ord.lteq(biggest, smallest))
       if (biggerWins.getOrElse(true)) { // smaller is small, or empty
         bigger
       } else {
@@ -88,7 +96,8 @@ class TopKMonoid[T](k: Int)(implicit ord: Ordering[T]) extends Monoid[TopK[T]] {
   }
 }
 
-class TopKToListAggregator[A](max: Int)(implicit ord: Ordering[A]) extends MonoidAggregator[A, TopK[A], List[A]] {
+class TopKToListAggregator[A](max: Int)(implicit ord: Ordering[A])
+    extends MonoidAggregator[A, TopK[A], List[A]] {
   val monoid: Monoid[TopK[A]] = new TopKMonoid[A](max)(ord)
   override def present(a: TopK[A]): List[A] = a.items
   override def prepare(a: A): TopK[A] = TopK(1, List(a), Some(a))

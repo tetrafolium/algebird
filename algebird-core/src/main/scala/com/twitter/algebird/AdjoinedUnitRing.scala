@@ -12,25 +12,27 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
 import scala.annotation.tailrec
 
 /**
- * This is for the case where your Ring[T] is a Rng (i.e. there is no unit).
- * @see http://en.wikipedia.org/wiki/Pseudo-ring#Adjoining_an_identity_element
- */
+  * This is for the case where your Ring[T] is a Rng (i.e. there is no unit).
+  * @see http://en.wikipedia.org/wiki/Pseudo-ring#Adjoining_an_identity_element
+  */
 case class AdjoinedUnit[T](ones: BigInt, get: T) {
   def unwrap: Option[T] = if (ones == 0) Some(get) else None
 }
 
 object AdjoinedUnit {
   def apply[T](item: T): AdjoinedUnit[T] = new AdjoinedUnit[T](BigInt(0), item)
-  implicit def ring[T](implicit ring: Ring[T]): Ring[AdjoinedUnit[T]] = new AdjoinedUnitRing[T]
+  implicit def ring[T](implicit ring: Ring[T]): Ring[AdjoinedUnit[T]] =
+    new AdjoinedUnitRing[T]
 }
 
-class AdjoinedUnitRing[T](implicit ring: Ring[T]) extends Ring[AdjoinedUnit[T]] {
+class AdjoinedUnitRing[T](implicit ring: Ring[T])
+    extends Ring[AdjoinedUnit[T]] {
   val one = AdjoinedUnit[T](BigInt(1), ring.zero)
   val zero = AdjoinedUnit[T](ring.zero)
 

@@ -2,9 +2,12 @@ package com.twitter.algebird
 
 import org.scalacheck.Gen
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.{Matchers, WordSpec}
 
-class BytesSpec extends WordSpec with Matchers with GeneratorDrivenPropertyChecks {
+class BytesSpec
+    extends WordSpec
+    with Matchers
+    with GeneratorDrivenPropertyChecks {
 
   "requires non-null arrays" in {
     an[IllegalArgumentException] should be thrownBy Bytes(null)
@@ -36,7 +39,9 @@ class BytesSpec extends WordSpec with Matchers with GeneratorDrivenPropertyCheck
         val array3 = word.getBytes
         Bytes(array3)
       }
-      (bytes1 equals bytes3) should (be(bytes1 equals bytes2) and be(bytes2 equals bytes3))
+      (bytes1 equals bytes3) should (be(bytes1 equals bytes2) and be(
+        bytes2 equals bytes3
+      ))
 
       // 4. equals is consistent.
       // The verification below (combined with the generator-driven test setup) is a naive smoke test.

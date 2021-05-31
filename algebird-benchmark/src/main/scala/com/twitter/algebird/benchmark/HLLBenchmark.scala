@@ -51,10 +51,13 @@ object HllBenchmark {
 
       val byteEncoder = implicitly[Injection[Long, Array[Byte]]]
       def setSize = rng.nextInt(10) + 1 // 1 -> 10
-      def hll(elements: Set[Long]): HLL = hllMonoid.batchCreate(elements)(byteEncoder)
+      def hll(elements: Set[Long]): HLL =
+        hllMonoid.batchCreate(elements)(byteEncoder)
 
       val inputIntermediate = (0L until numElements).map { _ =>
-        val setElements = (0 until setSize).map{ _ => rng.nextInt(1000).toLong }.toSet
+        val setElements = (0 until setSize).map { _ =>
+          rng.nextInt(1000).toLong
+        }.toSet
         (pow(numInputKeys, rng.nextFloat).toLong, List(hll(setElements)))
       }
       inputData = MapAlgebra.sumByKey(inputIntermediate).map(_._2).toSeq

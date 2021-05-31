@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
@@ -21,7 +21,11 @@ import org.scalacheck.Prop._
 
 class AggregatorLaws extends CheckProperties {
 
-  implicit def aggregator[A, B, C](implicit prepare: Arbitrary[A => B], sg: Semigroup[B], present: Arbitrary[B => C]): Arbitrary[Aggregator[A, B, C]] = Arbitrary {
+  implicit def aggregator[A, B, C](
+      implicit prepare: Arbitrary[A => B],
+      sg: Semigroup[B],
+      present: Arbitrary[B => C]
+  ): Arbitrary[Aggregator[A, B, C]] = Arbitrary {
     for {
       pp <- prepare.arbitrary
       ps <- present.arbitrary
@@ -47,25 +51,40 @@ class AggregatorLaws extends CheckProperties {
   }
 
   property("composing two Aggregators is correct") {
-    forAll { (in: List[Int], ag1: Aggregator[Int, String, Int], ag2: Aggregator[Int, Int, String]) =>
-      val c = GeneratedTupleAggregator.from2(ag1, ag2)
-      in.isEmpty || c(in) == (ag1(in), ag2(in))
+    forAll {
+      (
+          in: List[Int],
+          ag1: Aggregator[Int, String, Int],
+          ag2: Aggregator[Int, Int, String]
+      ) =>
+        val c = GeneratedTupleAggregator.from2(ag1, ag2)
+        in.isEmpty || c(in) == (ag1(in), ag2(in))
     }
   }
 
   property("Applicative composing two Aggregators is correct") {
-    forAll { (in: List[Int], ag1: Aggregator[Int, Set[Int], Int], ag2: Aggregator[Int, Unit, String]) =>
-      type AggInt[T] = Aggregator[Int, _, T]
-      val c = Applicative.join[AggInt, Int, String](ag1, ag2)
-      in.isEmpty || c(in) == (ag1(in), ag2(in))
+    forAll {
+      (
+          in: List[Int],
+          ag1: Aggregator[Int, Set[Int], Int],
+          ag2: Aggregator[Int, Unit, String]
+      ) =>
+        type AggInt[T] = Aggregator[Int, _, T]
+        val c = Applicative.join[AggInt, Int, String](ag1, ag2)
+        in.isEmpty || c(in) == (ag1(in), ag2(in))
     }
   }
 
   property("Aggregator.zip composing two Aggregators is correct") {
-    forAll { (in: List[(Int, String)], ag1: Aggregator[Int, Int, Int], ag2: Aggregator[String, Set[String], Double]) =>
-      val c = ag1.zip(ag2)
-      val (as, bs) = in.unzip
-      in.isEmpty || c(in) == (ag1(as), ag2(bs))
+    forAll {
+      (
+          in: List[(Int, String)],
+          ag1: Aggregator[Int, Int, Int],
+          ag2: Aggregator[String, Set[String], Double]
+      ) =>
+        val c = ag1.zip(ag2)
+        val (as, bs) = in.unzip
+        in.isEmpty || c(in) == (ag1(as), ag2(bs))
     }
   }
 
@@ -76,7 +95,11 @@ class AggregatorLaws extends CheckProperties {
     }
   }
 
-  implicit def monoidAggregator[A, B, C](implicit prepare: Arbitrary[A => B], m: Monoid[B], present: Arbitrary[B => C]): Arbitrary[MonoidAggregator[A, B, C]] = Arbitrary {
+  implicit def monoidAggregator[A, B, C](
+      implicit prepare: Arbitrary[A => B],
+      m: Monoid[B],
+      present: Arbitrary[B => C]
+  ): Arbitrary[MonoidAggregator[A, B, C]] = Arbitrary {
     for {
       pp <- prepare.arbitrary
       ps <- present.arbitrary
@@ -88,26 +111,33 @@ class AggregatorLaws extends CheckProperties {
   }
 
   property("MonoidAggregator.sumBefore is correct") {
-    forAll{ (in: List[List[Int]], ag: MonoidAggregator[Int, Int, Int]) =>
+    forAll { (in: List[List[Int]], ag: MonoidAggregator[Int, Int, Int]) =>
       val liftedAg = ag.sumBefore
       liftedAg(in) == ag(in.flatten)
     }
   }
 
   property("Aggregator.applyCumulatively is correct") {
-    forAll{ (in: List[Int], ag: Aggregator[Int, Int, Int]) =>
+    forAll { (in: List[Int], ag: Aggregator[Int, Int, Int]) =>
       val cumulative: List[Int] = ag.applyCumulatively(in)
       cumulative.size == in.size &&
-        cumulative.zipWithIndex.forall{
-          case (sum, i) =>
-            sum == ag.apply(in.take(i + 1))
-        }
+      cumulative.zipWithIndex.forall {
+        case (sum, i) =>
+          sum == ag.apply(in.take(i + 1))
+      }
     }
   }
   property("MonoidAggregator.either is correct") {
-    forAll { (in: List[(Int, Int)], agl: MonoidAggregator[Int, Int, Int], agr: MonoidAggregator[Int, Int, Int]) =>
-      agl.zip(agr).apply(in) ==
-        agl.either(agr).apply(in.flatMap { case (l, r) => List(Left(l), Right(r)) })
+    forAll {
+      (
+          in: List[(Int, Int)],
+          agl: MonoidAggregator[Int, Int, Int],
+          agr: MonoidAggregator[Int, Int, Int]
+      ) =>
+        agl.zip(agr).apply(in) ==
+          agl
+            .either(agr)
+            .apply(in.flatMap { case (l, r) => List(Left(l), Right(r)) })
     }
   }
 

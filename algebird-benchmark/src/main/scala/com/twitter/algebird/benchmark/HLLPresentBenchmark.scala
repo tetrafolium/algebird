@@ -1,6 +1,6 @@
 package com.twitter.algebird.benchmark
 
-import com.twitter.algebird.{ HyperLogLogMonoid, HLL, SparseHLL, DenseHLL }
+import com.twitter.algebird.{HyperLogLogMonoid, HLL, SparseHLL, DenseHLL}
 import com.twitter.bijection._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit

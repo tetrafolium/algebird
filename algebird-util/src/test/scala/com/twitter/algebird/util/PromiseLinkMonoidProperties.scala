@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird.util
 
 import com.twitter.algebird._
@@ -21,11 +21,19 @@ import org.scalacheck.Prop._
 class PromiseLinkMonoidProperties extends CheckProperties {
   property("associative") {
     def makeTunnel(seed: Int) = PromiseLink.toPromiseLink(seed)
-    def collapseFinalValues(finalTunnel: PromiseLink[Int], tunnels: Seq[PromiseLink[Int]], toFeed: Int) = {
+    def collapseFinalValues(
+        finalTunnel: PromiseLink[Int],
+        tunnels: Seq[PromiseLink[Int]],
+        toFeed: Int
+    ) = {
       finalTunnel.completeWithStartingValue(toFeed)
       finalTunnel.promise +: tunnels.map { _.promise }
     }
 
-    TunnelMonoidProperties.testTunnelMonoid(identity, makeTunnel, collapseFinalValues)
+    TunnelMonoidProperties.testTunnelMonoid(
+      identity,
+      makeTunnel,
+      collapseFinalValues
+    )
   }
 }

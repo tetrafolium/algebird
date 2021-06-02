@@ -12,17 +12,17 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Represents something that consumes I and may emit O. Has some internal
- * state that may be used to improve performance.
- * Generally used to model folds or reduces (see BufferedReduce)
- */
+  * Represents something that consumes I and may emit O. Has some internal
+  * state that may be used to improve performance.
+  * Generally used to model folds or reduces (see BufferedReduce)
+  */
 trait Buffered[I, O] extends java.io.Serializable {
   def put(i: I): Option[O]
   def flush: Option[O]
@@ -54,9 +54,9 @@ abstract class ArrayBufferedOperation[I, O](size: Int) extends Buffered[I, O] {
 }
 
 /**
- * This never emits on put, you must call flush
- * designed to be use in the stackable pattern with ArrayBufferedOperation
- */
+  * This never emits on put, you must call flush
+  * designed to be use in the stackable pattern with ArrayBufferedOperation
+  */
 trait BufferedReduce[V] extends Buffered[V, V] {
   abstract override def put(item: V) = {
     val res = super.put(item)

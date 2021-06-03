@@ -19,16 +19,16 @@ class FoldTest extends WordSpec {
   }
 
   def run[I, O](fold: Fold[I, O], cases: Case[I, O]*): Unit =
-    cases.foreach { c => assert(c.runCase(fold) === c.expected) }
+    cases.foreach { c =>
+      assert(c.runCase(fold) === c.expected)
+    }
 
   "Fold" should {
 
     "foldLeft" in {
-      run[String, String](
-        Fold.foldLeft("") { (a, b) => a ++ b },
-        Zero(""),
-        One("1", "1"),
-        Many(Seq("1", "2", "3"), "123"))
+      run[String, String](Fold.foldLeft("") { (a, b) =>
+        a ++ b
+      }, Zero(""), One("1", "1"), Many(Seq("1", "2", "3"), "123"))
     }
 
     "seq" in {
@@ -37,7 +37,8 @@ class FoldTest extends WordSpec {
         Zero(Seq.empty),
         One(1, Seq(1)),
         Many(Seq(1, 2, 3), Seq(1, 2, 3)),
-        Many(Seq(2, 1, 3), Seq(2, 1, 3)))
+        Many(Seq(2, 1, 3), Seq(2, 1, 3))
+      )
     }
 
     "const" in {
@@ -45,7 +46,8 @@ class FoldTest extends WordSpec {
         Fold.const("42"),
         Zero("42"),
         One(1, "42"),
-        Many(Seq(1, 2, 3), "42"))
+        Many(Seq(1, 2, 3), "42")
+      )
     }
 
     "first" in {
@@ -53,7 +55,8 @@ class FoldTest extends WordSpec {
         Fold.first,
         Zero(None),
         One("1", Some("1")),
-        Many(Seq("1", "2", "3"), Some("1")))
+        Many(Seq("1", "2", "3"), Some("1"))
+      )
     }
 
     "last" in {
@@ -61,7 +64,8 @@ class FoldTest extends WordSpec {
         Fold.last,
         Zero(None),
         One("1", Some("1")),
-        Many(Seq("1", "2", "3"), Some("3")))
+        Many(Seq("1", "2", "3"), Some("3"))
+      )
     }
 
     "max" in {
@@ -70,7 +74,8 @@ class FoldTest extends WordSpec {
         Zero(None),
         One(1, Some(1)),
         Many(Seq(1, 2, 3), Some(3)),
-        Many(Seq(1, 3, 2), Some(3)))
+        Many(Seq(1, 3, 2), Some(3))
+      )
     }
 
     "min" in {
@@ -79,7 +84,8 @@ class FoldTest extends WordSpec {
         Zero(None),
         One(1, Some(1)),
         Many(Seq(1, 2, 3), Some(1)),
-        Many(Seq(2, 1, 3), Some(1)))
+        Many(Seq(2, 1, 3), Some(1))
+      )
     }
 
     "sum" in {
@@ -88,7 +94,8 @@ class FoldTest extends WordSpec {
         Zero(0),
         One(1, 1),
         Many(Seq(1, 2, 3), 6),
-        Many(Seq(2, 1, 3), 6))
+        Many(Seq(2, 1, 3), 6)
+      )
     }
 
     "size" in {
@@ -96,15 +103,14 @@ class FoldTest extends WordSpec {
         Fold.size,
         Zero(0),
         One("1", 1),
-        Many(Seq("1", "2", "3"), 3))
+        Many(Seq("1", "2", "3"), 3)
+      )
     }
 
     "average" in {
-      run[Int, Double](
-        Fold.sum[Int].joinWith(Fold.size) { (s, c) => s.toDouble / c },
-        One(1, 1.0),
-        Many(Seq(1, 2, 3), 2.0),
-        Many(Seq(2, 1, 3), 2.0))
+      run[Int, Double](Fold.sum[Int].joinWith(Fold.size) { (s, c) =>
+        s.toDouble / c
+      }, One(1, 1.0), Many(Seq(1, 2, 3), 2.0), Many(Seq(2, 1, 3), 2.0))
     }
 
     "sequence" in {
@@ -112,7 +118,8 @@ class FoldTest extends WordSpec {
         Fold.sequence(Seq(Fold.count { _ < 0 }, Fold.count { _ >= 0 })),
         Zero(Seq(0, 0)),
         One(1, Seq(0, 1)),
-        Many(Seq(-2, -1, 0, 1, 2), Seq(2, 3)))
+        Many(Seq(-2, -1, 0, 1, 2), Seq(2, 3))
+      )
     }
 
   }

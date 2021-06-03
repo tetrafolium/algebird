@@ -12,13 +12,13 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
-import scala.collection.{ Map => ScMap }
-import scala.collection.mutable.{ Map => MMap }
+import scala.collection.{Map => ScMap}
+import scala.collection.mutable.{Map => MMap}
 
-import com.twitter.algebird.macros.{ Cuber, Roller }
+import com.twitter.algebird.macros.{Cuber, Roller}
 
 trait MapOperations[K, V, M <: ScMap[K, V]] {
   def add(oldMap: M, kv: (K, V)): M
@@ -26,8 +26,10 @@ trait MapOperations[K, V, M <: ScMap[K, V]] {
   def fromMutable(mut: MMap[K, V]): M
 }
 
-abstract class GenericMapMonoid[K, V, M <: ScMap[K, V]](implicit val semigroup: Semigroup[V])
-  extends Monoid[M] with MapOperations[K, V, M] {
+abstract class GenericMapMonoid[K, V, M <: ScMap[K, V]](
+    implicit val semigroup: Semigroup[V]
+) extends Monoid[M]
+    with MapOperations[K, V, M] {
 
   val nonZero: (V => Boolean) = semigroup match {
     case mon: Monoid[_] => mon.isNonZero(_)
@@ -36,16 +38,21 @@ abstract class GenericMapMonoid[K, V, M <: ScMap[K, V]](implicit val semigroup: 
 
   override def isNonZero(x: M) =
     !x.isEmpty && (semigroup match {
-      case mon: Monoid[_] => x.valuesIterator.exists { v =>
-        mon.isNonZero(v)
-      }
+      case mon: Monoid[_] =>
+        x.valuesIterator.exists { v =>
+          mon.isNonZero(v)
+        }
       case _ => true
     })
 
   override def plus(x: M, y: M) = {
     // Scala maps can reuse internal structure, so don't copy just add into the bigger one:
     // This really saves computation when adding lots of small maps into big ones (common)
-    val (big, small, bigOnLeft) = if (x.size > y.size) { (x, y, true) } else { (y, x, false) }
+    val (big, small, bigOnLeft) = if (x.size > y.size) {
+      (x, y, true)
+    } else {
+      (y, x, false)
+    }
     small match {
       // Mutable maps create new copies of the underlying data on add so don't use the
       // handleImmutable method.
@@ -81,7 +88,8 @@ abstract class GenericMapMonoid[K, V, M <: ScMap[K, V]](implicit val semigroup: 
           case (k, v) =>
             val oldVOpt = mutable.get(k)
             // sorry for the micro optimization here: avoiding a closure
-            val newV = if (oldVOpt.isEmpty) v else Semigroup.plus(oldVOpt.get, v)
+            val newV =
+              if (oldVOpt.isEmpty) v else Semigroup.plus(oldVOpt.get, v)
             if (nonZero(newV))
               mutable.update(k, newV)
             else
@@ -92,21 +100,27 @@ abstract class GenericMapMonoid[K, V, M <: ScMap[K, V]](implicit val semigroup: 
     }
 }
 
-class MapMonoid[K, V](implicit semigroup: Semigroup[V]) extends GenericMapMonoid[K, V, Map[K, V]] {
+class MapMonoid[K, V](implicit semigroup: Semigroup[V])
+    extends GenericMapMonoid[K, V, Map[K, V]] {
   override lazy val zero = Map[K, V]()
   override def add(oldMap: Map[K, V], kv: (K, V)) = oldMap + kv
   override def remove(oldMap: Map[K, V], k: K) = oldMap - k
-  override def fromMutable(mut: MMap[K, V]): Map[K, V] = new MutableBackedMap(mut)
+  override def fromMutable(mut: MMap[K, V]): Map[K, V] =
+    new MutableBackedMap(mut)
 }
 
-class ScMapMonoid[K, V](implicit semigroup: Semigroup[V]) extends GenericMapMonoid[K, V, ScMap[K, V]] {
+class ScMapMonoid[K, V](implicit semigroup: Semigroup[V])
+    extends GenericMapMonoid[K, V, ScMap[K, V]] {
   override lazy val zero = ScMap[K, V]()
   override def add(oldMap: ScMap[K, V], kv: (K, V)) = oldMap + kv
   override def remove(oldMap: ScMap[K, V], k: K) = oldMap - k
-  override def fromMutable(mut: MMap[K, V]): ScMap[K, V] = new MutableBackedMap(mut)
+  override def fromMutable(mut: MMap[K, V]): ScMap[K, V] =
+    new MutableBackedMap(mut)
 }
 
-private[this] class MutableBackedMap[K, V](val backingMap: MMap[K, V]) extends Map[K, V] with java.io.Serializable {
+private[this] class MutableBackedMap[K, V](val backingMap: MMap[K, V])
+    extends Map[K, V]
+    with java.io.Serializable {
   def get(key: K) = backingMap.get(key)
 
   def iterator = backingMap.iterator
@@ -117,22 +131,30 @@ private[this] class MutableBackedMap[K, V](val backingMap: MMap[K, V]) extends M
 }
 
 /**
- * You can think of this as a Sparse vector group
- */
-class MapGroup[K, V](implicit val group: Group[V]) extends MapMonoid[K, V]()(group)
-  with Group[Map[K, V]] {
-  override def negate(kv: Map[K, V]) = kv.mapValues { v => group.negate(v) }
+  * You can think of this as a Sparse vector group
+  */
+class MapGroup[K, V](implicit val group: Group[V])
+    extends MapMonoid[K, V]()(group)
+    with Group[Map[K, V]] {
+  override def negate(kv: Map[K, V]) = kv.mapValues { v =>
+    group.negate(v)
+  }
 }
 
-class ScMapGroup[K, V](implicit val group: Group[V]) extends ScMapMonoid[K, V]()(group)
-  with Group[ScMap[K, V]] {
-  override def negate(kv: ScMap[K, V]) = kv.mapValues { v => group.negate(v) }
+class ScMapGroup[K, V](implicit val group: Group[V])
+    extends ScMapMonoid[K, V]()(group)
+    with Group[ScMap[K, V]] {
+  override def negate(kv: ScMap[K, V]) = kv.mapValues { v =>
+    group.negate(v)
+  }
 }
 
 /**
- * You can think of this as a Sparse vector ring
- */
-trait GenericMapRing[K, V, M <: ScMap[K, V]] extends Ring[M] with MapOperations[K, V, M] {
+  * You can think of this as a Sparse vector ring
+  */
+trait GenericMapRing[K, V, M <: ScMap[K, V]]
+    extends Ring[M]
+    with MapOperations[K, V, M] {
 
   implicit def ring: Ring[V]
 
@@ -142,10 +164,15 @@ trait GenericMapRing[K, V, M <: ScMap[K, V]] extends Ring[M] with MapOperations[
   // is not actually needed in matrix multiplication, so we are punting on it for now.
   override def one = sys.error("multiplicative identity for Map unimplemented")
   override def times(x: M, y: M): M = {
-    val (big, small, bigOnLeft) = if (x.size > y.size) { (x, y, true) } else { (y, x, false) }
+    val (big, small, bigOnLeft) = if (x.size > y.size) {
+      (x, y, true)
+    } else {
+      (y, x, false)
+    }
     small.foldLeft(zero) { (oldMap, kv) =>
       val bigV = big.getOrElse(kv._1, ring.zero)
-      val newV = if (bigOnLeft) ring.times(bigV, kv._2) else ring.times(kv._2, bigV)
+      val newV =
+        if (bigOnLeft) ring.times(bigV, kv._2) else ring.times(kv._2, bigV)
       if (ring.isNonZero(newV)) {
         add(oldMap, (kv._1 -> newV))
       } else {
@@ -155,11 +182,13 @@ trait GenericMapRing[K, V, M <: ScMap[K, V]] extends Ring[M] with MapOperations[
   }
 }
 
-class MapRing[K, V](implicit val ring: Ring[V]) extends MapGroup[K, V]()(ring)
-  with GenericMapRing[K, V, Map[K, V]]
+class MapRing[K, V](implicit val ring: Ring[V])
+    extends MapGroup[K, V]()(ring)
+    with GenericMapRing[K, V, Map[K, V]]
 
-class ScMapRing[K, V](implicit val ring: Ring[V]) extends ScMapGroup[K, V]()(ring)
-  with GenericMapRing[K, V, ScMap[K, V]]
+class ScMapRing[K, V](implicit val ring: Ring[V])
+    extends ScMapGroup[K, V]()(ring)
+    with GenericMapRing[K, V, ScMap[K, V]]
 
 object MapAlgebra {
   def rightContainsLeft[K, V: Equiv](l: Map[K, V], r: Map[K, V]): Boolean =
@@ -176,7 +205,9 @@ object MapAlgebra {
     }
   }
 
-  def mergeLookup[T, U, V: Monoid](keys: TraversableOnce[T])(lookup: T => Option[V])(present: T => U): Map[U, V] =
+  def mergeLookup[T, U, V: Monoid](
+      keys: TraversableOnce[T]
+  )(lookup: T => Option[V])(present: T => U): Map[U, V] =
     sumByKey {
       keys.map { k =>
         present(k) -> lookup(k).getOrElse(Monoid.zero[V])
@@ -196,37 +227,52 @@ object MapAlgebra {
     Monoid.sum(pairs.map { case (k, v) => Map(k -> Set(v)) })
 
   /** join the keys of two maps (similar to outer-join in a DB) */
-  def join[K, V, W](map1: Map[K, V], map2: Map[K, W]): Map[K, (Option[V], Option[W])] =
-    Monoid.plus(map1.mapValues { v => (List(v), List[W]()) },
-      map2.mapValues { w => (List[V](), List(w)) })
+  def join[K, V, W](
+      map1: Map[K, V],
+      map2: Map[K, W]
+  ): Map[K, (Option[V], Option[W])] =
+    Monoid
+      .plus(map1.mapValues { v =>
+        (List(v), List[W]())
+      }, map2.mapValues { w =>
+        (List[V](), List(w))
+      })
       .mapValues { case (v, w) => (v.headOption, w.headOption) }
 
   /**
-   * Reverses a graph losslessly
-   * None key is for v's with no sources.
-   */
+    * Reverses a graph losslessly
+    * None key is for v's with no sources.
+    */
   def invertExact[K, V](m: Map[Option[K], Set[V]]): Map[Option[V], Set[K]] = {
     def nonEmptyIter[T](i: Iterable[T]): Iterable[Option[T]] =
-      if (i.isEmpty) Iterable(None) else { i.map { Some(_) } }
+      if (i.isEmpty) Iterable(None)
+      else {
+        i.map { Some(_) }
+      }
 
     Monoid.sum {
-      for (
-        (k, sv) <- m.view.toIterable;
-        v <- nonEmptyIter(sv)
-      ) yield Map(v -> k.toSet)
+      for ((k, sv) <- m.view.toIterable;
+        v <- nonEmptyIter(sv)) yield Map(v -> k.toSet)
     }
   }
+
   /**
-   * Invert the Common case of exactly one value for each key
-   */
+    * Invert the Common case of exactly one value for each key
+    */
   def invert[K, V](m: Map[K, V]): Map[V, Set[K]] =
     Monoid.sum(m.view.toIterable.map { case (k, v) => Map(v -> Set(k)) })
 
-  def dot[K, V](left: Map[K, V], right: Map[K, V])(implicit mring: Ring[Map[K, V]], mon: Monoid[V]): V =
+  def dot[K, V](
+      left: Map[K, V],
+      right: Map[K, V]
+  )(implicit mring: Ring[Map[K, V]], mon: Monoid[V]): V =
     Monoid.sum(mring.times(left, right).values)
 
-  def cube[K, V](it: TraversableOnce[(K, V)])(implicit c: Cuber[K]): Map[c.K, List[V]] = {
-    val map: collection.mutable.Map[c.K, List[V]] = collection.mutable.Map[c.K, List[V]]()
+  def cube[K, V](
+      it: TraversableOnce[(K, V)]
+  )(implicit c: Cuber[K]): Map[c.K, List[V]] = {
+    val map: collection.mutable.Map[c.K, List[V]] =
+      collection.mutable.Map[c.K, List[V]]()
     it.toIterator.foreach {
       case (k, v) =>
         c(k).foreach { ik =>
@@ -240,15 +286,25 @@ object MapAlgebra {
     new MutableBackedMap(map)
   }
 
-  def cubeSum[K, V](it: TraversableOnce[(K, V)])(implicit c: Cuber[K], sg: Semigroup[V]): Map[c.K, V] =
+  def cubeSum[K, V](
+      it: TraversableOnce[(K, V)]
+  )(implicit c: Cuber[K], sg: Semigroup[V]): Map[c.K, V] =
     sumByKey(it.toIterator.flatMap { case (k, v) => c(k).map((_, v)) })
 
-  def cubeAggregate[T, K, U, V](it: TraversableOnce[T], agg: Aggregator[T, U, V])(fn: T => K)(implicit c: Cuber[K]): Map[c.K, V] =
-    sumByKey(it.toIterator.flatMap { t => c(fn(t)).map((_, agg.prepare(t))) })(agg.semigroup)
+  def cubeAggregate[T, K, U, V](
+      it: TraversableOnce[T],
+      agg: Aggregator[T, U, V]
+  )(fn: T => K)(implicit c: Cuber[K]): Map[c.K, V] =
+    sumByKey(it.toIterator.flatMap { t =>
+      c(fn(t)).map((_, agg.prepare(t)))
+    })(agg.semigroup)
       .map { case (k, v) => (k, agg.present(v)) }
 
-  def rollup[K, V](it: TraversableOnce[(K, V)])(implicit r: Roller[K]): Map[r.K, List[V]] = {
-    val map: collection.mutable.Map[r.K, List[V]] = collection.mutable.Map[r.K, List[V]]()
+  def rollup[K, V](
+      it: TraversableOnce[(K, V)]
+  )(implicit r: Roller[K]): Map[r.K, List[V]] = {
+    val map: collection.mutable.Map[r.K, List[V]] =
+      collection.mutable.Map[r.K, List[V]]()
     it.toIterator.foreach {
       case (k, v) =>
         r(k).foreach { ik =>
@@ -262,11 +318,18 @@ object MapAlgebra {
     new MutableBackedMap(map)
   }
 
-  def rollupSum[K, V](it: TraversableOnce[(K, V)])(implicit r: Roller[K], sg: Semigroup[V]): Map[r.K, V] =
+  def rollupSum[K, V](
+      it: TraversableOnce[(K, V)]
+  )(implicit r: Roller[K], sg: Semigroup[V]): Map[r.K, V] =
     sumByKey(it.toIterator.flatMap { case (k, v) => r(k).map((_, v)) })
 
-  def rollupAggregate[T, K, U, V](it: TraversableOnce[T], agg: Aggregator[T, U, V])(fn: T => K)(implicit r: Roller[K]): Map[r.K, V] =
-    sumByKey(it.toIterator.flatMap { t => r(fn(t)).map((_, agg.prepare(t))) })(agg.semigroup)
+  def rollupAggregate[T, K, U, V](
+      it: TraversableOnce[T],
+      agg: Aggregator[T, U, V]
+  )(fn: T => K)(implicit r: Roller[K]): Map[r.K, V] =
+    sumByKey(it.toIterator.flatMap { t =>
+      r(fn(t)).map((_, agg.prepare(t)))
+    })(agg.semigroup)
       .map { case (k, v) => (k, agg.present(v)) }
 
 }

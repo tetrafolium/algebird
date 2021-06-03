@@ -12,26 +12,28 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird.util.summer
 
 import com.twitter.algebird._
 import com.twitter.util.Future
 
 /**
- * @author Ian O Connell
- */
-
-class NullSummer[Key, Value](tuplesIn: Incrementor, tuplesOut: Incrementor)(implicit semigroup: Semigroup[Value])
-  extends AsyncSummer[(Key, Value), Map[Key, Value]] {
+  * @author Ian O Connell
+  */
+class NullSummer[Key, Value](tuplesIn: Incrementor, tuplesOut: Incrementor)(
+    implicit semigroup: Semigroup[Value]
+) extends AsyncSummer[(Key, Value), Map[Key, Value]] {
   def flush: Future[Map[Key, Value]] = Future.value(Map.empty)
   def tick: Future[Map[Key, Value]] = Future.value(Map.empty)
   def addAll(vals: TraversableOnce[(Key, Value)]): Future[Map[Key, Value]] = {
 
-    val r = Semigroup.sumOption(vals.map { inV =>
-      tuplesIn.incr
-      Map(inV)
-    }).getOrElse(Map.empty)
+    val r = Semigroup
+      .sumOption(vals.map { inV =>
+        tuplesIn.incr
+        Map(inV)
+      })
+      .getOrElse(Map.empty)
     tuplesOut.incrBy(r.size)
     Future.value(r)
   }

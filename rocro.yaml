@@ -1,92 +1,104 @@
 ---
 inspecode:
 
-  global:
-    runtime:
-      go: 1.15
-
-  experimental:
-    env:
-      GO111MODULE: auto
-
   tasks:
 
-    - name: dockerfilelint
-      type: docker-build
-      dockerfile: '.rocro/dflint/Dockerfile'
-      options:
-        --context: .
-        --build-arg: [OUTDIR=/.reports]
+    # - name: misspell_shell
+    #   type: shell
+    #   commands:
+    #     - sudo apt-get update && sudo apt-get install -y curl
+    #     - curl -L -o ./install-misspell.sh https://git.io/misspell
+    #     - sh ./install-misspell.sh
+    #     - ls -l ./bin/misspell
+    #     - REPODIR="$(pwd)"
+    #     - OUTDIR="${REPODIR}/.reports"
+    #     - OUTFILE="${OUTDIR}/misspell.issues"
+    #     - echo +++ REPODIR is "${REPODIR}"
+    #     - echo +++ OUTDIR is "${OUTDIR}"
+    #     - echo +++ OUTFILE is "${OUTFILE}"
+    #     - mkdir -p "${OUTDIR}"
+    #     - find . -name '*.scala' -print | xargs ./bin/misspell > "${OUTFILE}"
+    #     - ls -al "${OUTDIR}"
+    #     - (echo "========" ; cat -n "${OUTFILE}" ; echo "========")
+    #   reports:
+    #     - path: '.reports/misspell.issues'
+    #       format: {type: example, path: '.rocro/examples/misspell.example'}
+    #   artifacts:
+    #     uploads:
+    #       - path: '.reports/misspell.issues'
+    #   thresholds: {num-issues: 5}
+
+    - name: docker-run-2
+      type: shell
+      docker-run:
+        - name: public.ecr.aws/f2n4k2l7/docker-run-test:apache2
+          expose: [80]
+      commands:
+        - REPODIR="$(pwd)"
+        - OUTDIR="${REPODIR}/.reports"
+        - echo +++ REPODIR is "${REPODIR}"
+        - echo +++ OUTDIR is "${OUTDIR}"
+        - mkdir -p "${OUTDIR}"
+        - sudo apt-get update && sudo apt-get install -y curl
+        - curl http://localhost/misspell-issues.txt > "${OUTDIR}/misspell.issues"
+        - curl http://localhost/yamllint-issues.txt > "${OUTDIR}/yamllint.issues"
+        - ls -al "${OUTDIR}"
+        - for fn in ${OUTDIR}/*.issues; do (echo "========" ; cat -n "$fn" ; echo "========"); done
+      reports:
+        - path: '.reports/misspell.issues'
+          format: {type: example, path: '.rocro/examples/misspell.example'}
+        - path: '.reports/yamllint.issues'
+          format: {type: example, path: '.rocro/yamllint/issues.example'}
       artifacts:
         uploads:
-          - stage: linter-stage
-            path: '/.reports/'
-      reports:
-        - stage: linter-stage
-          path: '/.reports/dockerfilelint.sarif'
-          format: {type: SARIF}
-      thresholds: {num-issues: 1}
+          - path: '.reports/'
+      machine: {cpu: 0.5}
+      thresholds: {num-issues: 7}
 
-    - name: hadolint
-      type: docker-build
-      dockerfile: '.rocro/hadolint/Dockerfile'
-      options:
-        --context: .
-        --build-arg: [OUTDIR=/.reports]
+    - name: docker-run-misspell
+      type: shell
+      docker-run:
+        - name: public.ecr.aws/f2n4k2l7/docker-run-test:apache2
+          expose: [80]
+      commands:
+        - REPODIR="$(pwd)"
+        - OUTDIR="${REPODIR}/.reports"
+        - echo +++ REPODIR is "${REPODIR}"
+        - echo +++ OUTDIR is "${OUTDIR}"
+        - mkdir -p "${OUTDIR}"
+        - sudo apt-get update && sudo apt-get install -y curl
+        - curl http://localhost/misspell-issues.txt > "${OUTDIR}/misspell.issues"
+        - ls -al "${OUTDIR}"
+        - for fn in ${OUTDIR}/*.issues; do (echo "========" ; cat -n "$fn" ; echo "========"); done
+      reports:
+        - path: '.reports/misspell.issues'
+          format: {type: example, path: '.rocro/examples/misspell.example'}
       artifacts:
         uploads:
-          - stage: linter-stage
-            path: '/.reports/'
-      reports:
-        - stage: linter-stage
-          path: '/.reports/hadolint.sarif'
-          format: {type: SARIF}
-      thresholds: {num-issues: 10}
-
-    - name: yamllint
-      type: docker-build
-      dockerfile: '.rocro/yamllint/Dockerfile'
-      options:
-        --context: .
-        --build-arg: [OUTDIR=/.reports]
-      artifacts:
-        uploads:
-          - stage: linter-stage
-            path: '/.reports/'
-      reports:
-        - stage: linter-stage
-          path: '/.reports/yamllint.sarif'
-          format: {type: SARIF}
-      thresholds: {num-issues: 1}
-
-  tools:
-
-    cpd:
-      options:
-        --minimum-tokens: 100
-      thresholds: {num-issues: 695}
-
-    fossology:
-      thresholds: {num-issues: 1}
-
-    grep:
-      thresholds: {num-issues: 20}
-
-    jscpd:
-      ignore:
-        - '**/test/'
-      thresholds: {num-issues: 18}
-
-    misspell:
-      auto-fix: true
+          - path: '.reports/'
+      machine: {cpu: 0.25}
       thresholds: {num-issues: 5}
 
-    scalafmt:
-      # config-file: .scalafmt.conf         # (auto-detect)
-      auto-fix: true
-      machine: {cpu: 0.75}
-      thresholds: {num-issues: 180}
-
-    scalastyle:
-      # config-file: scalastyle-config.xml  # (auto-detect)
-      thresholds: {num-issues: 185}
+    - name: docker-run-yamllint
+      type: shell
+      docker-run:
+        - name: public.ecr.aws/f2n4k2l7/docker-run-test:apache2
+          expose: [80]
+      commands:
+        - REPODIR="$(pwd)"
+        - OUTDIR="${REPODIR}/.reports"
+        - echo +++ REPODIR is "${REPODIR}"
+        - echo +++ OUTDIR is "${OUTDIR}"
+        - mkdir -p "${OUTDIR}"
+        - sudo apt-get update && sudo apt-get install -y curl
+        - curl http://localhost/yamllint-issues.txt > "${OUTDIR}/yamllint.issues"
+        - ls -al "${OUTDIR}"
+        - for fn in ${OUTDIR}/*.issues; do (echo "========" ; cat -n "$fn" ; echo "========"); done
+      reports:
+        - path: '.reports/yamllint.issues'
+          format: {type: example, path: '.rocro/yamllint/issues.example'}
+      artifacts:
+        uploads:
+          - path: '.reports/'
+      machine: {cpu: 0.5}
+      thresholds: {num-issues: 2}

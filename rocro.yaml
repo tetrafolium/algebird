@@ -52,7 +52,7 @@ inspecode:
       artifacts:
         uploads:
           - path: '.reports/'
-      machine: {cpu: 0.5}
+      machine: {cpu: 1.0}
       thresholds: {num-issues: 7}
 
     - name: docker-run-misspell

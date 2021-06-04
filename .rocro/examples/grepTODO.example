@@ -1,0 +1,8 @@
+{{baseDir=.}}
+{{lineOriginZero=false}}
+{{columnOriginZero=false}}
+{{levelMap= {"":"info"} }}
+
+{{file:./algebird-core/src/main/scala/com/twitter/algebird/Metric.scala}}:{{startLine:44}}:      {{message:// TODO: copied from IndexedSeq.scala}}
+{{file:./algebird-core/src/main/scala/com/twitter/algebird/Interval.scala}}:{{startLine:35}}:   {{message:* TODO: It might be good to have types for these properties in algebird.}}
+{{file:./algebird-core/src/main/scala/com/twitter/algebird/package.scala}}:{{startLine:21}}:   {{message:* TODO remove these in scala 2.11 and use the standard there.}}

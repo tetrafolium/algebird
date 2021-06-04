@@ -1,0 +1,6 @@
+{{baseDir=.}}
+{{lineOriginZero=false}}
+{{columnOriginZero=false}}
+
+{{file:./filename.yaml}}:{{startLine:11}}:{{startColumn:22}}: [{{level:error}}] {{message:error message (rule-id)}}
+{{file:./filename.yml}}:{{startLine:33}}:{{startColumn:44}}: [{{level:warning}}] {{message:warning message (rule-id)}}

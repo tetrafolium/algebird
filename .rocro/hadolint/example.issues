@@ -1,0 +1,8 @@
+{{baseDir=.}}
+{{lineOriginZero=false}}
+{{columnOriginZero=false}}
+{{levelMap= {} }}
+
+{{file:/root/.rocro/hadolint/Dockerfile}}:{{startLine:4}} {{message:DL3018 {{level:warning}}: Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`}}
+{{file:/root/.rocro/hadolint/Dockerfile}}:{{startLine:10}} {{message:DL3059 {{level:info}}: Multiple consecutive `RUN` instructions. Consider consolidation.}}
+{{file:/root/.rocro/hadolint/Dockerfile}}:{{startLine:14}} {{message:DL3044 {{level:error}}: Do not refer to an environment variable within the same `ENV` statement where it is defined.}}

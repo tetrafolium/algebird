@@ -1,0 +1,7 @@
+{{baseDir=.}}
+{{lineOriginZero=false}}
+{{columnOriginZero=false}}
+{{levelMap= {"":"info"} }}
+
+{{file:./algebird-core/src/main/scala/com/twitter/algebird/Eventually.scala}}:{{startLine:117}}:{{startColumn:5}}: {{message:"Overriden" is a misspelling of "Overridden"}}
+{{file:./algebird-core/src/main/scala/com/twitter/algebird/Fold.scala}}:{{startLine:251}}:{{startColumn:28}}: {{message:"inferrence" is a misspelling of "inference"}}

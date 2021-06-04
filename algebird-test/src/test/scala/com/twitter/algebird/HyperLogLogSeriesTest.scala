@@ -2,7 +2,7 @@ package com.twitter.algebird
 
 import org.scalatest._
 
-import org.scalacheck.{ Gen, Arbitrary }
+import org.scalacheck.{Gen, Arbitrary}
 
 import HyperLogLog._ //Get the implicit int2bytes, long2Bytes
 
@@ -12,13 +12,11 @@ class HyperLogLogSeriesLaws extends CheckProperties {
   implicit val hllSeriesMonoid = new HyperLogLogSeriesMonoid(5) //5 bits
 
   implicit val hllSeriesGen = Arbitrary {
-    for (
-      v <- Gen.choose(0, 10000)
-    ) yield (hllSeriesMonoid.create(v, v))
+    for (v <- Gen.choose(0, 10000)) yield (hllSeriesMonoid.create(v, v))
   }
 
   property("HyperLogLogSeries is a Monoid") {
-    monoidLawsEq[HLLSeries]{ _.toHLL == _.toHLL }
+    monoidLawsEq[HLLSeries] { _.toHLL == _.toHLL }
   }
 }
 
@@ -29,9 +27,16 @@ class HyperLogLogSeriesTest extends WordSpec with Matchers {
 
   def aveErrorOf(bits: Int): Double = 1.04 / scala.math.sqrt(1 << bits)
 
-  def testApproximatelyEqual(hllSeries: HLLSeries, hllCount: Double, bits: Int) = {
+  def testApproximatelyEqual(
+      hllSeries: HLLSeries,
+      hllCount: Double,
+      bits: Int
+  ) = {
     val seriesResult = hllSeries.toHLL.estimatedSize
-    assert(scala.math.abs(seriesResult - hllCount) / seriesResult < (3.5 * aveErrorOf(bits)))
+    assert(
+      scala.math
+        .abs(seriesResult - hllCount) / seriesResult < (3.5 * aveErrorOf(bits))
+    )
   }
 
   "HyperLogLogSeries" should {
@@ -42,11 +47,15 @@ class HyperLogLogSeriesTest extends WordSpec with Matchers {
 
       val timestamps = (1 to 100).map { _.toLong }
       val r = new java.util.Random
-      val timestampedData = timestamps.map { t => (r.nextLong, t) }
+      val timestampedData = timestamps.map { t =>
+        (r.nextLong, t)
+      }
 
       val series = timestampedData
-        .map{ case (value, timestamp) => hllSeriesMonoid.create(value, timestamp) }
-        .reduce{ hllSeriesMonoid.plus(_, _) }
+        .map {
+          case (value, timestamp) => hllSeriesMonoid.create(value, timestamp)
+        }
+        .reduce { hllSeriesMonoid.plus(_, _) }
 
       timestamps.foreach { timestamp =>
         val seriesResult = series.since(timestamp)

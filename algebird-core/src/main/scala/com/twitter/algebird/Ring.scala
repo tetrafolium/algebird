@@ -12,34 +12,42 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
-import java.lang.{ Integer => JInt, Short => JShort, Long => JLong, Float => JFloat, Double => JDouble, Boolean => JBool }
+import java.lang.{
+  Integer => JInt,
+  Short => JShort,
+  Long => JLong,
+  Float => JFloat,
+  Double => JDouble,
+  Boolean => JBool
+}
 
 import scala.annotation.implicitNotFound
+
 /**
- * Ring: Group + multiplication (see: http://en.wikipedia.org/wiki/Ring_%28mathematics%29)
- *  and the three elements it defines:
- *  - additive identity aka zero
- *  - addition
- *  - multiplication
- *
- *
- *  Note, if you have distributive property, additive inverses, and multiplicative identity you
- *  can prove you have a commutative group under the ring:
- *
- *  1. (a + 1)*(b + 1) = a(b + 1) + (b + 1)
- *  2.                 = ab + a + b + 1
- *  3. or:
- *  4.
- *  5.                 = (a + 1)b + (a + 1)
- *  6.                 = ab + b + a + 1
- *  7.
- *  8. So: ab + a + b + 1 == ab + b + a + 1
- *  9.   using the fact that -(ab) and -1 exist, we get:
- * 10. a + b == b + a
- */
+  * Ring: Group + multiplication (see: http://en.wikipedia.org/wiki/Ring_%28mathematics%29)
+  *  and the three elements it defines:
+  *  - additive identity aka zero
+  *  - addition
+  *  - multiplication
+  *
+  *
+  *  Note, if you have distributive property, additive inverses, and multiplicative identity you
+  *  can prove you have a commutative group under the ring:
+  *
+  *  1. (a + 1)*(b + 1) = a(b + 1) + (b + 1)
+  *  2.                 = ab + a + b + 1
+  *  3. or:
+  *  4.
+  *  5.                 = (a + 1)b + (a + 1)
+  *  6.                 = ab + b + a + 1
+  *  7.
+  *  8. So: ab + a + b + 1 == ab + b + a + 1
+  *  9.   using the fact that -(ab) and -1 exist, we get:
+  * 10. a + b == b + a
+  */
 
 @implicitNotFound(msg = "Cannot find Ring type class for ${T}")
 trait Ring[@specialized(Int, Long, Float, Double) T] extends Group[T] {
@@ -103,7 +111,9 @@ object Ring extends GeneratedRingImplicits with ProductRings {
     else iter.reduceLeft(ring.times _)
   }
   // If the ring doesn't have a one, or you want to distinguish empty cases:
-  def productOption[T](it: TraversableOnce[T])(implicit rng: Ring[T]): Option[T] =
+  def productOption[T](
+      it: TraversableOnce[T]
+  )(implicit rng: Ring[T]): Option[T] =
     it.reduceLeftOption(rng.times _)
 
   implicit def numericRing[T: Numeric]: Ring[T] = new NumericRing[T]
@@ -120,7 +130,9 @@ object Ring extends GeneratedRingImplicits with ProductRings {
   implicit val jfloatRing: Ring[JFloat] = JFloatField
   implicit val doubleRing: Ring[Double] = DoubleField
   implicit val jdoubleRing: Ring[JDouble] = JDoubleField
-  implicit def indexedSeqRing[T: Ring]: Ring[IndexedSeq[T]] = new IndexedSeqRing[T]
+  implicit def indexedSeqRing[T: Ring]: Ring[IndexedSeq[T]] =
+    new IndexedSeqRing[T]
   implicit def mapRing[K, V](implicit ring: Ring[V]) = new MapRing[K, V]()(ring)
-  implicit def scMapRing[K, V](implicit ring: Ring[V]) = new ScMapRing[K, V]()(ring)
+  implicit def scMapRing[K, V](implicit ring: Ring[V]) =
+    new ScMapRing[K, V]()(ring)
 }

@@ -1,7 +1,7 @@
 package com.twitter.algebird
 
 import com.twitter.algebird.BaseProperties._
-import org.scalacheck.{ Arbitrary, Gen }
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.Matchers
 import org.scalacheck.Prop._
 
@@ -26,7 +26,8 @@ class AbstractAlgebraTest extends CheckProperties with Matchers {
 
     forAll { intList: List[Option[Int]] =>
       val flattenedList = intList.flatMap(x => x)
-      val expectedResult = if (!flattenedList.isEmpty) Some(flattenedList.sum) else None
+      val expectedResult =
+        if (!flattenedList.isEmpty) Some(flattenedList.sum) else None
       expectedResult == monoid.sum(intList)
     }
   }
@@ -49,11 +50,13 @@ class AbstractAlgebraTest extends CheckProperties with Matchers {
       }
 
       val flattenedList = intList.flatMap(x => x)
-      val expectedMax = if (!flattenedList.isEmpty) Some(Max(flattenedList.max)) else None
-      val expectedMin = if (!flattenedList.isEmpty) Some(Min(flattenedList.min)) else None
+      val expectedMax =
+        if (!flattenedList.isEmpty) Some(Max(flattenedList.max)) else None
+      val expectedMin =
+        if (!flattenedList.isEmpty) Some(Min(flattenedList.min)) else None
 
       expectedMax == maxMonoid.sum(maxList) &&
-        expectedMin == minMonoid.sum(minList)
+      expectedMin == minMonoid.sum(minList)
 
     }
   }
@@ -67,14 +70,16 @@ class AbstractAlgebraTest extends CheckProperties with Matchers {
         val last = intList.map(Last(_)).reduceLeft(lsg.plus _)
 
         first == First(intList.head) &&
-          last == Last(intList.last)
+        last == Last(intList.last)
       }
     }
   }
 
   property("IndexedSeq should sum") {
     forAll { (lIndexedSeq: IndexedSeq[Int]) =>
-      val rIndexedSeq = lIndexedSeq.map { _ => scala.util.Random.nextInt }
+      val rIndexedSeq = lIndexedSeq.map { _ =>
+        scala.util.Random.nextInt
+      }
       (lIndexedSeq.size == rIndexedSeq.size) ==> {
         val leftBase = lIndexedSeq.map(Max(_))
         val rightBase = rIndexedSeq.map(Max(_))
@@ -95,8 +100,8 @@ class AbstractAlgebraTest extends CheckProperties with Matchers {
         val right = rightBase ++ remainder
 
         Semigroup.plus(left, rightBase) == sumBase ++ remainder &&
-          Semigroup.plus(leftBase, rightBase) == sumBase &&
-          Semigroup.plus(leftBase, right) == sumBase ++ remainder
+        Semigroup.plus(leftBase, rightBase) == sumBase &&
+        Semigroup.plus(leftBase, right) == sumBase ++ remainder
       }
     }
   }
@@ -108,14 +113,18 @@ class AbstractAlgebraTest extends CheckProperties with Matchers {
       val left = l.padTo(math.max(l.size, r.size), 0)
       val right = r.padTo(math.max(l.size, r.size), 0)
 
-      (left, right).zipped.map(_ + _).toArray.deep == monoid.sum(List(l.toArray, r.toArray)).deep
+      (left, right).zipped.map(_ + _).toArray.deep == monoid
+        .sum(List(l.toArray, r.toArray))
+        .deep
     }
   }
 
   property("An ArrayGroup should negate") {
     val arrayGroup = new ArrayGroup[Int]
     forAll { intList: List[Int] =>
-      intList.map(-1 * _).toArray.deep == arrayGroup.negate(intList.toArray).deep
+      intList.map(-1 * _).toArray.deep == arrayGroup
+        .negate(intList.toArray)
+        .deep
     }
   }
 
@@ -125,7 +134,10 @@ class AbstractAlgebraTest extends CheckProperties with Matchers {
     implicit val metricsGen = Arbitrary {
       for {
         count <- Gen.choose(0, 10000)
-        largest <- Gen.oneOf[Option[Max[Int]]](None, Gen.choose(1, 100).map(n => Some(Max(n))))
+        largest <- Gen.oneOf[Option[Max[Int]]](
+          None,
+          Gen.choose(1, 100).map(n => Some(Max(n)))
+        )
       } yield Metrics(count, largest)
     }
 

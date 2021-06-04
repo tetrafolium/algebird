@@ -12,18 +12,18 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird.util
 
 import com.twitter.algebird._
 import com.twitter.util.Promise
 
 /**
- * This Monoid allows code to depend on the result of computation asynchronously.
- * This is a slightly less general version of the TunnelMonoid. See the documentation
- * for TunnelMonoid for general motivation. NOTE: the Promise will be fulfilled with
- * the value just before the PromiseLink is calculated.
- */
+  * This Monoid allows code to depend on the result of computation asynchronously.
+  * This is a slightly less general version of the TunnelMonoid. See the documentation
+  * for TunnelMonoid for general motivation. NOTE: the Promise will be fulfilled with
+  * the value just before the PromiseLink is calculated.
+  */
 class PromiseLinkMonoid[V](monoid: Monoid[V]) extends Monoid[PromiseLink[V]] { //TODo(jcoveney) rename PromiseLink
   def zero = PromiseLink(new Promise, monoid.zero)
 
@@ -39,9 +39,9 @@ class PromiseLinkMonoid[V](monoid: Monoid[V]) extends Monoid[PromiseLink[V]] { /
 }
 
 /**
- * This class allows code to depends on the data that a value will be combined with,
- * fulfilling the Promise with the value just before the value is added in.
- */
+  * This class allows code to depends on the data that a value will be combined with,
+  * fulfilling the Promise with the value just before the value is added in.
+  */
 case class PromiseLink[V](promise: Promise[V], value: V) {
   def completeWithStartingValue(startingV: V)(implicit monoid: Monoid[V]): V = {
     Tunnel.properPromiseUpdate(promise, startingV)
@@ -50,7 +50,9 @@ case class PromiseLink[V](promise: Promise[V], value: V) {
 }
 
 object PromiseLink {
-  implicit def monoid[V](implicit innerMonoid: Monoid[V]): PromiseLinkMonoid[V] =
+  implicit def monoid[V](
+      implicit innerMonoid: Monoid[V]
+  ): PromiseLinkMonoid[V] =
     new PromiseLinkMonoid[V](innerMonoid)
 
   def toPromiseLink[V](value: V) = PromiseLink(new Promise, value)

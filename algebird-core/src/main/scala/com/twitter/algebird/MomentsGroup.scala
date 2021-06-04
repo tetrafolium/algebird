@@ -12,48 +12,58 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
 /**
- * A class to calculate the first five central moments over a sequence of Doubles.
- * Given the first five central moments, we can then calculate metrics like skewness
- * and kurtosis.
- *
- * m{i} denotes the ith central moment.
- */
+  * A class to calculate the first five central moments over a sequence of Doubles.
+  * Given the first five central moments, we can then calculate metrics like skewness
+  * and kurtosis.
+  *
+  * m{i} denotes the ith central moment.
+  */
 case class Moments(m0: Long, m1: Double, m2: Double, m3: Double, m4: Double) {
   def count = m0
 
   def mean = m1
 
   // Population variance, not sample variance.
-  def variance = if (count > 1)
-    m2 / count
-  else /* don't return junk when the moment is not defined */
-    Double.NaN
+  def variance =
+    if (count > 1)
+      m2 / count
+    else
+      /* don't return junk when the moment is not defined */
+      Double.NaN
 
   // Population standard deviation, not sample standard deviation.
   def stddev = math.sqrt(variance)
 
-  def skewness = if (count > 2)
-    math.sqrt(count) * m3 / math.pow(m2, 1.5)
-  else /* don't return junk when the moment is not defined */
-    Double.NaN
+  def skewness =
+    if (count > 2)
+      math.sqrt(count) * m3 / math.pow(m2, 1.5)
+    else
+      /* don't return junk when the moment is not defined */
+      Double.NaN
 
-  def kurtosis = if (count > 3)
-    count * m4 / math.pow(m2, 2) - 3
-  else /* don't return junk when the moment is not defined */
-    Double.NaN
+  def kurtosis =
+    if (count > 3)
+      count * m4 / math.pow(m2, 2) - 3
+    else
+      /* don't return junk when the moment is not defined */
+      Double.NaN
 }
 
 object Moments {
   implicit val group = MomentsGroup
   val aggregator = MomentsAggregator
 
-  def numericAggregator[N](implicit num: Numeric[N]): MonoidAggregator[N, Moments, Moments] =
-    Aggregator.prepareMonoid { n: N => Moments(num.toDouble(n)) }
+  def numericAggregator[N](
+      implicit num: Numeric[N]
+  ): MonoidAggregator[N, Moments, Moments] =
+    Aggregator.prepareMonoid { n: N =>
+      Moments(num.toDouble(n))
+    }
 
   // Create a Moments object given a single value. This is useful for
   // initializing moment calculations at the start of a stream.
@@ -64,8 +74,8 @@ object Moments {
 }
 
 /**
- * A monoid to perform moment calculations.
- */
+  * A monoid to perform moment calculations.
+  */
 object MomentsGroup extends Group[Moments] {
 
   // When combining averages, if the counts sizes are too close we should use a different
@@ -93,24 +103,32 @@ object MomentsGroup extends Group[Moments] {
       math.pow(delta, 2) * a.count * b.count / countCombined
 
     val m3 = a.m3 + b.m3 +
-      math.pow(delta, 3) * a.count * b.count * (a.count - b.count) / math.pow(countCombined, 2) +
+      math.pow(delta, 3) * a.count * b.count * (a.count - b.count) / math.pow(
+        countCombined,
+        2
+      ) +
       3 * delta * (a.count * b.m2 - b.count * a.m2) / countCombined
 
     val m4 = a.m4 + b.m4 +
       math.pow(delta, 4) * a.count * b.count * (math.pow(a.count, 2) -
         a.count * b.count + math.pow(b.count, 2)) / math.pow(countCombined, 3) +
-        6 * math.pow(delta, 2) * (math.pow(a.count, 2) * b.m2 +
-          math.pow(b.count, 2) * a.m2) / math.pow(countCombined, 2) +
-          4 * delta * (a.count * b.m3 - b.count * a.m3) / countCombined
+      6 * math.pow(delta, 2) * (math.pow(a.count, 2) * b.m2 +
+        math.pow(b.count, 2) * a.m2) / math.pow(countCombined, 2) +
+      4 * delta * (a.count * b.m3 - b.count * a.m3) / countCombined
 
     Moments(countCombined, meanCombined, m2, m3, m4)
   }
 
   /**
-   * Given two streams of doubles A and B, with the specified counts and means,
-   * calculate the mean of the combined stream.
-   */
-  def getCombinedMean(countA: Long, meanA: Double, countB: Long, meanB: Double): Double = {
+    * Given two streams of doubles A and B, with the specified counts and means,
+    * calculate the mean of the combined stream.
+    */
+  def getCombinedMean(
+      countA: Long,
+      meanA: Double,
+      countB: Long,
+      meanB: Double
+  ): Double = {
     val (big, small) =
       if (math.abs(countA) >= math.abs(countB))
         ((countA, meanA), (countB, meanB))

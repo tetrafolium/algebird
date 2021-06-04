@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
@@ -22,9 +22,8 @@ import org.scalacheck.Prop.forAll
 import scala.math.Equiv
 
 /**
- * Base properties useful for all tests using Algebird's typeclasses.
- */
-
+  * Base properties useful for all tests using Algebird's typeclasses.
+  */
 object BaseProperties {
   def defaultEq[T](t0: T, t1: T) = t0 == t1
 
@@ -41,7 +40,9 @@ object BaseProperties {
     case _ => true
   }
 
-  def isAssociativeEq[T: Semigroup, U <: T: Arbitrary](eqfn: (T, T) => Boolean) = {
+  def isAssociativeEq[T: Semigroup, U <: T: Arbitrary](
+      eqfn: (T, T) => Boolean
+  ) = {
     'isAssociativeEq |: forAll { (a: U, b: U, c: U) =>
       val semi = implicitly[Semigroup[T]]
       eqfn(semi.plus(a, semi.plus(b, c)), semi.plus(semi.plus(a, b), c))
@@ -53,16 +54,21 @@ object BaseProperties {
 
   def isAssociative[T: Semigroup: Arbitrary] = isAssociativeDifferentTypes[T, T]
 
-  def semigroupSumWorks[T: Semigroup: Arbitrary: Equiv] = 'semigroupSumWorks |: forAll { (in: List[T]) =>
-    in.isEmpty || {
-      Equiv[T].equiv(Semigroup.sumOption(in.iterator).get, in.reduceLeft(Semigroup.plus(_, _)))
+  def semigroupSumWorks[T: Semigroup: Arbitrary: Equiv] =
+    'semigroupSumWorks |: forAll { (in: List[T]) =>
+      in.isEmpty || {
+        Equiv[T].equiv(
+          Semigroup.sumOption(in.iterator).get,
+          in.reduceLeft(Semigroup.plus(_, _))
+        )
+      }
     }
-  }
 
-  def isCommutativeEq[T: Semigroup: Arbitrary](eqfn: (T, T) => Boolean) = 'isCommutativeEq |: forAll { (a: T, b: T) =>
-    val semi = implicitly[Semigroup[T]]
-    eqfn(semi.plus(a, b), semi.plus(b, a))
-  }
+  def isCommutativeEq[T: Semigroup: Arbitrary](eqfn: (T, T) => Boolean) =
+    'isCommutativeEq |: forAll { (a: T, b: T) =>
+      val semi = implicitly[Semigroup[T]]
+      eqfn(semi.plus(a, b), semi.plus(b, a))
+    }
   def isCommutative[T: Semigroup: Arbitrary] = isCommutativeEq[T](defaultEq _)
 
   def semigroupLaws[T: Semigroup: Arbitrary] = {
@@ -78,38 +84,49 @@ object BaseProperties {
   def semigroupLawsEquiv[T: Semigroup: Arbitrary: Equiv] =
     isAssociativeEq[T, T](Equiv[T].equiv _) && semigroupSumWorks[T]
 
-  def commutativeSemigroupLawsEq[T: Semigroup: Arbitrary](eqfn: (T, T) => Boolean) =
+  def commutativeSemigroupLawsEq[T: Semigroup: Arbitrary](
+      eqfn: (T, T) => Boolean
+  ) =
     isAssociativeEq[T, T](eqfn) && isCommutativeEq[T](eqfn)
-  def commutativeSemigroupLaws[T: Semigroup: Arbitrary] = commutativeSemigroupLawsEq[T](defaultEq _)
+  def commutativeSemigroupLaws[T: Semigroup: Arbitrary] =
+    commutativeSemigroupLawsEq[T](defaultEq _)
 
-  def isNonZeroWorksMonoid[T: Monoid: Arbitrary: Equiv] = 'isNonZeroWorksMonoid |: forAll { (a: T, b: T) =>
-    val aIsLikeZero = Monoid.zeroEquiv[T].equiv(Monoid.plus(a, b), b)
-    Monoid.isNonZero(a) || aIsLikeZero
+  def isNonZeroWorksMonoid[T: Monoid: Arbitrary: Equiv] =
+    'isNonZeroWorksMonoid |: forAll { (a: T, b: T) =>
+      val aIsLikeZero = Monoid.zeroEquiv[T].equiv(Monoid.plus(a, b), b)
+      Monoid.isNonZero(a) || aIsLikeZero
+    }
+
+  def isNonZeroWorksRing[T: Ring: Arbitrary] = 'isNonZeroWorksRing |: forAll {
+    (a: T, b: T) =>
+      implicit val monT: Monoid[T] = implicitly[Ring[T]]
+      val prodZero = !monT.isNonZero(Ring.times(a, b))
+      (Monoid.isNonZero(a) && Monoid.isNonZero(b)) || prodZero
   }
 
-  def isNonZeroWorksRing[T: Ring: Arbitrary] = 'isNonZeroWorksRing |: forAll { (a: T, b: T) =>
-    implicit val monT: Monoid[T] = implicitly[Ring[T]]
-    val prodZero = !monT.isNonZero(Ring.times(a, b))
-    (Monoid.isNonZero(a) && Monoid.isNonZero(b)) || prodZero
-  }
-
-  def weakZeroDifferentTypes[T: Monoid, U <: T: Arbitrary] = 'weakZeroDifferentTypes |: forAll { (a: U) =>
-    val mon = implicitly[Monoid[T]]
-    val zero = mon.zero
-    // Some types, e.g. Maps, are not totally equal for all inputs (i.e. zero values removed)
-    (mon.plus(a, zero) == mon.plus(zero, a))
-  }
+  def weakZeroDifferentTypes[T: Monoid, U <: T: Arbitrary] =
+    'weakZeroDifferentTypes |: forAll { (a: U) =>
+      val mon = implicitly[Monoid[T]]
+      val zero = mon.zero
+      // Some types, e.g. Maps, are not totally equal for all inputs (i.e. zero values removed)
+      (mon.plus(a, zero) == mon.plus(zero, a))
+    }
 
   def weakZero[T: Monoid: Arbitrary] = weakZeroDifferentTypes[T, T]
 
-  def validZeroEq[T: Monoid: Arbitrary](eqfn: (T, T) => Boolean) = 'validZeroEq |: forAll { (a: T) =>
-    val mon = implicitly[Monoid[T]]
-    val zero = mon.zero
-    eqfn(a, mon.plus(a, zero)) && eqfn(mon.plus(zero, a), a) && eqfn(mon.plus(a, zero), mon.plus(zero, a))
-  }
+  def validZeroEq[T: Monoid: Arbitrary](eqfn: (T, T) => Boolean) =
+    'validZeroEq |: forAll { (a: T) =>
+      val mon = implicitly[Monoid[T]]
+      val zero = mon.zero
+      eqfn(a, mon.plus(a, zero)) && eqfn(mon.plus(zero, a), a) && eqfn(
+        mon.plus(a, zero),
+        mon.plus(zero, a)
+      )
+    }
   def validZero[T: Monoid: Arbitrary] = validZeroEq[T](defaultEq _)
 
-  def monoidLaws[T: Monoid: Arbitrary] = validZero[T] && semigroupLaws[T] && isNonZeroWorksMonoid[T]
+  def monoidLaws[T: Monoid: Arbitrary] =
+    validZero[T] && semigroupLaws[T] && isNonZeroWorksMonoid[T]
 
   def monoidLawsEq[T: Monoid: Arbitrary](eqfn: (T, T) => Boolean): Prop =
     validZeroEq[T](eqfn) && semigroupLawsEq[T](eqfn)
@@ -117,44 +134,60 @@ object BaseProperties {
   def commutativeMonoidLawsEq[T: Monoid: Arbitrary](eqfn: (T, T) => Boolean) =
     monoidLawsEq[T](eqfn) && isCommutativeEq[T](eqfn)
 
-  def commutativeMonoidLaws[T: Monoid: Arbitrary] = commutativeMonoidLawsEq[T](defaultEq _)
+  def commutativeMonoidLaws[T: Monoid: Arbitrary] =
+    commutativeMonoidLawsEq[T](defaultEq _)
 
-  def hasAdditiveInversesDifferentTypes[T: Group, U <: T: Arbitrary] = forAll { (a: U) =>
-    val grp = implicitly[Group[T]]
-    (!grp.isNonZero(grp.plus(grp.negate(a), a))) &&
+  def hasAdditiveInversesDifferentTypes[T: Group, U <: T: Arbitrary] = forAll {
+    (a: U) =>
+      val grp = implicitly[Group[T]]
+      (!grp.isNonZero(grp.plus(grp.negate(a), a))) &&
       (!grp.isNonZero(grp.minus(a, a))) &&
       (!grp.isNonZero(grp.plus(a, grp.negate(a))))
   }
 
-  def hasAdditiveInverses[T: Group: Arbitrary] = hasAdditiveInversesDifferentTypes[T, T]
+  def hasAdditiveInverses[T: Group: Arbitrary] =
+    hasAdditiveInversesDifferentTypes[T, T]
 
-  def groupLawsEq[T: Group: Arbitrary](eqfn: (T, T) => Boolean) = monoidLawsEq[T](eqfn) && hasAdditiveInverses[T]
+  def groupLawsEq[T: Group: Arbitrary](eqfn: (T, T) => Boolean) =
+    monoidLawsEq[T](eqfn) && hasAdditiveInverses[T]
 
   def groupLaws[T: Group: Arbitrary] = monoidLaws[T] && hasAdditiveInverses[T]
   // Here are multiplicative properties:
   def validOne[T: Ring: Arbitrary] = 'validOne |: forAll { (a: T) =>
     val rng = implicitly[Ring[T]]
-    (rng.times(rng.one, a) == rng.times(a, rng.one)) && (a == rng.times(a, rng.one))
+    (rng.times(rng.one, a) == rng.times(a, rng.one)) && (a == rng
+      .times(a, rng.one))
   }
-  def zeroAnnihilates[T: Ring: Arbitrary] = 'zeroAnnihilates |: forAll { (a: T) =>
-    val ring = implicitly[Ring[T]]
-    (!ring.isNonZero(ring.times(a, ring.zero))) &&
+  def zeroAnnihilates[T: Ring: Arbitrary] = 'zeroAnnihilates |: forAll {
+    (a: T) =>
+      val ring = implicitly[Ring[T]]
+      (!ring.isNonZero(ring.times(a, ring.zero))) &&
       (!ring.isNonZero(ring.times(ring.zero, a)))
   }
-  def isDistributiveDifferentTypes[T: Ring, U <: T: Arbitrary] = 'isDistributiveDifferentTypes |:
-    forAll { (a: U, b: U, c: U) =>
-      val rng = implicitly[Ring[T]]
-      (rng.times(a, rng.plus(b, c)) == rng.plus(rng.times(a, b), rng.times(a, c))) &&
-        (rng.times(rng.plus(b, c), a) == rng.plus(rng.times(b, a), rng.times(c, a)))
-    }
+  def isDistributiveDifferentTypes[T: Ring, U <: T: Arbitrary] =
+    'isDistributiveDifferentTypes |:
+      forAll { (a: U, b: U, c: U) =>
+        val rng = implicitly[Ring[T]]
+        (rng.times(a, rng.plus(b, c)) == rng.plus(
+          rng.times(a, b),
+          rng.times(a, c)
+        )) &&
+        (rng.times(rng.plus(b, c), a) == rng.plus(
+          rng.times(b, a),
+          rng.times(c, a)
+        ))
+      }
   def isDistributive[T: Ring: Arbitrary] = isDistributiveDifferentTypes[T, T]
 
-  def timesIsAssociative[T: Ring: Arbitrary] = 'timesIsAssociative |: forAll { (a: T, b: T, c: T) =>
-    val rng = implicitly[Ring[T]]
-    rng.times(a, rng.times(b, c)) == rng.times(rng.times(a, b), c)
+  def timesIsAssociative[T: Ring: Arbitrary] = 'timesIsAssociative |: forAll {
+    (a: T, b: T, c: T) =>
+      val rng = implicitly[Ring[T]]
+      rng.times(a, rng.times(b, c)) == rng.times(rng.times(a, b), c)
   }
   def pseudoRingLaws[T: Ring: Arbitrary] =
-    isDistributive[T] && timesIsAssociative[T] && groupLaws[T] && isCommutative[T] &&
+    isDistributive[T] && timesIsAssociative[T] && groupLaws[T] && isCommutative[
+      T
+    ] &&
       isNonZeroWorksRing[T]
 
   def semiringLaws[T: Ring: Arbitrary] =
@@ -165,12 +198,14 @@ object BaseProperties {
 
   def ringLaws[T: Ring: Arbitrary] = validOne[T] && pseudoRingLaws[T]
 
-  def hasMultiplicativeInverse[T: Field: Arbitrary] = 'hasMultiplicativeInverse |: forAll { (a: T) =>
-    val fld = implicitly[Field[T]]
-    (!fld.isNonZero(a)) || {
-      val inva = fld.inverse(a)
-      (fld.times(inva, a) == fld.one) && (fld.times(a, inva) == fld.one)
+  def hasMultiplicativeInverse[T: Field: Arbitrary] =
+    'hasMultiplicativeInverse |: forAll { (a: T) =>
+      val fld = implicitly[Field[T]]
+      (!fld.isNonZero(a)) || {
+        val inva = fld.inverse(a)
+        (fld.times(inva, a) == fld.one) && (fld.times(a, inva) == fld.one)
+      }
     }
-  }
-  def fieldLaws[T: Field: Arbitrary] = ringLaws[T] && hasMultiplicativeInverse[T]
+  def fieldLaws[T: Field: Arbitrary] =
+    ringLaws[T] && hasMultiplicativeInverse[T]
 }

@@ -33,7 +33,7 @@ inspecode:
       docker-run:
         - name: public.ecr.aws/f2n4k2l7/docker-run-test:apache2
           expose: [80]
-          machine: {cpu: 2}
+          machine: {cpu: 0.5}
       commands:
         - REPODIR="$(pwd)"
         - OUTDIR="${REPODIR}/.reports"
@@ -53,7 +53,7 @@ inspecode:
       artifacts:
         uploads:
           - path: '.reports/'
-      machine: {cpu: 8}
+      machine: {cpu: 1.5}     # total 2.0 cpu with `docker-run` container
       thresholds: {num-issues: 7}
 
     - name: docker-run-misspell

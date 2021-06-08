@@ -53,7 +53,7 @@ inspecode:
       artifacts:
         uploads:
           - path: '.reports/'
-      machine: {cpu: 1.5}     # total 2.0 cpu with `docker-run` container
+      machine: {cpu: 0.5}     # total 1.0 cpu with `docker-run` container
       thresholds: {num-issues: 7}
 
     - name: docker-run-misspell
@@ -76,7 +76,7 @@ inspecode:
           format: {type: example, path: '.rocro/examples/misspell.example'}
       artifacts:
         uploads:
-          - path: '.reports/'
+          - path: '.reports/misspell.issues'
       machine: {cpu: 0.25}
       thresholds: {num-issues: 5}
 

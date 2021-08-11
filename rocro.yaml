@@ -7,7 +7,7 @@ inspecode:
 
   experimental:
     env:
-      GO111MODULE: 'no'
+      GO111MODULE: 'off'
 
   tasks:
 

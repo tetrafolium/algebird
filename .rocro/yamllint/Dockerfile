@@ -38,7 +38,8 @@ RUN ( ls -ld "${REPODIR}/inspecode-tasks/" && ls -la "${REPODIR}/inspecode-tasks
 RUN ( ls -ld "${TOOLDIR}/" && ls -lLa "${TOOLDIR}/" ) || true
 
 ### Convert yamllint issues to SARIF ...
-RUN go run "${TOOLDIR}/yamllint/cmd/main.go" "${REPOPATH}" \
+RUN GO111MODULE="no" \
+    go run "${TOOLDIR}/yamllint/cmd/main.go" "${REPOPATH}" \
         < "${OUTDIR}/yamllint.issues" \
         > "${OUTDIR}/yamllint.sarif"
 RUN ls -la "${OUTDIR}"

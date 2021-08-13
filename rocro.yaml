@@ -57,7 +57,7 @@ inspecode:
         - stage: linter-stage
           path: '/.reports/yamllint.sarif'
           format: {type: SARIF}
-      thresholds: {num-issues: 1}
+      thresholds: {num-issues: 2}
 
   tools:
 

@@ -12,18 +12,18 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird.statistics
 
 /**
- *  used to keep track of stats and time spent processing iterators passed to the methods
- *  @author Julien Le Dem
- */
+  *  used to keep track of stats and time spent processing iterators passed to the methods
+  *  @author Julien Le Dem
+  */
 private class IterCallStatistics(threadSafe: Boolean) {
 
   /**
-   * internal collection of a distribution of values on a log scale
-   */
+    * internal collection of a distribution of values on a log scale
+    */
   private class Statistics(threadSafe: Boolean) {
     import scala.math.min
     import java.lang.Long.numberOfLeadingZeros
@@ -43,10 +43,12 @@ private class IterCallStatistics(threadSafe: Boolean) {
     def pow2(i: Int): Int = 1 << i
 
     override def toString =
-      distribution.zipWithIndex.map {
-        case (v, i) =>
-          (if (i == maxBucket) ">" else "<" + pow2(i)) + ": " + v
-      }.mkString(", ") + ", avg=" + total.toDouble / count + " count=" + count
+      distribution.zipWithIndex
+        .map {
+          case (v, i) =>
+            (if (i == maxBucket) ">" else "<" + pow2(i)) + ": " + v
+        }
+        .mkString(", ") + ", avg=" + total.toDouble / count + " count=" + count
 
   }
 
@@ -66,7 +68,9 @@ private class IterCallStatistics(threadSafe: Boolean) {
   }
 
   /** measures the time spent calling f on iter and the size of iter */
-  def measure[T, O](iter: TraversableOnce[T])(f: (TraversableOnce[T]) => O): O = {
+  def measure[T, O](
+      iter: TraversableOnce[T]
+  )(f: (TraversableOnce[T]) => O): O = {
     val ci = new CountingIterator(iter.toIterator)
     val t0 = System.currentTimeMillis()
     val r = f(ci)

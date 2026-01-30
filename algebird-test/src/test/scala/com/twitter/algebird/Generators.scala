@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
@@ -21,18 +21,32 @@ import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
 /**
- * Generators useful in testing Interval
- */
+  * Generators useful in testing Interval
+  */
 object Generators {
   // The new scalacheck oneOf results in diverging implicits here
   // should follow up an investigation?
-  def oneOf[T](g1: Gen[T], g2: Gen[T], gs: Gen[T]*) = for {
-    i <- choose(0, gs.length + 1)
-    x <- if (i == 0) g1 else if (i == 1) g2 else gs(i - 2)
-  } yield x
+  def oneOf[T](g1: Gen[T], g2: Gen[T], gs: Gen[T]*) =
+    for {
+      i <- choose(0, gs.length + 1)
+      x <- if (i == 0) g1 else if (i == 1) g2 else gs(i - 2)
+    } yield x
 
-  implicit def intervalArb[T](implicit arb: Arbitrary[T], ord: Ordering[T]): Arbitrary[Interval[T]] =
-    Arbitrary(oneOf(genUniverse, genEmpty, genInclusiveLower, genExclusiveLower, genInclusiveUpper, genExclusiveUpper, genIntersection))
+  implicit def intervalArb[T](
+      implicit arb: Arbitrary[T],
+      ord: Ordering[T]
+  ): Arbitrary[Interval[T]] =
+    Arbitrary(
+      oneOf(
+        genUniverse,
+        genEmpty,
+        genInclusiveLower,
+        genExclusiveLower,
+        genInclusiveUpper,
+        genExclusiveUpper,
+        genIntersection
+      )
+    )
 
   implicit def lowerIntArb[T: Arbitrary: Ordering]: Arbitrary[Lower[T]] =
     Arbitrary(oneOf(genInclusiveLower, genExclusiveLower))
@@ -40,7 +54,8 @@ object Generators {
   implicit def upperIntArb[T: Arbitrary: Ordering]: Arbitrary[Upper[T]] =
     Arbitrary(oneOf(genInclusiveUpper, genExclusiveUpper))
 
-  implicit def intersectionArb[T: Arbitrary: Ordering]: Arbitrary[Interval.GenIntersection[T]] =
+  implicit def intersectionArb[T: Arbitrary: Ordering]
+      : Arbitrary[Interval.GenIntersection[T]] =
     Arbitrary(genIntersection)
 
   def genUniverse[T: Arbitrary: Ordering] =

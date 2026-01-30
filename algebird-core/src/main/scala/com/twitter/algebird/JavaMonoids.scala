@@ -12,11 +12,18 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
-import java.lang.{ Integer => JInt, Short => JShort, Long => JLong, Float => JFloat, Double => JDouble, Boolean => JBool }
-import java.util.{ Map => JMap, List => JList }
+import java.lang.{
+  Integer => JInt,
+  Short => JShort,
+  Long => JLong,
+  Float => JFloat,
+  Double => JDouble,
+  Boolean => JBool
+}
+import java.util.{Map => JMap, List => JList}
 
 import scala.collection.JavaConverters._
 
@@ -70,17 +77,19 @@ object JDoubleField extends Field[JDouble] {
 object JBoolField extends Field[JBool] {
   override val zero = JBool.FALSE
   override val one = JBool.TRUE
-  override def plus(x: JBool, y: JBool) = JBool.valueOf(x.booleanValue ^ y.booleanValue)
+  override def plus(x: JBool, y: JBool) =
+    JBool.valueOf(x.booleanValue ^ y.booleanValue)
   override def negate(x: JBool) = x
   override def minus(x: JBool, y: JBool) = plus(x, y)
-  override def times(x: JBool, y: JBool) = JBool.valueOf(x.booleanValue & y.booleanValue)
+  override def times(x: JBool, y: JBool) =
+    JBool.valueOf(x.booleanValue & y.booleanValue)
   override def div(x: JBool, y: JBool) = { assertNotZero(y); x }
 }
 
 /**
- * Since Lists are mutable, this always makes a full copy. Prefer scala immutable Lists
- * if you use scala immutable lists, the tail of the result of plus is always the right argument
- */
+  * Since Lists are mutable, this always makes a full copy. Prefer scala immutable Lists
+  * if you use scala immutable lists, the tail of the result of plus is always the right argument
+  */
 class JListMonoid[T] extends Monoid[JList[T]] {
   override def isNonZero(x: JList[T]) = !x.isEmpty
   override lazy val zero = new java.util.ArrayList[T](0)
@@ -93,10 +102,10 @@ class JListMonoid[T] extends Monoid[JList[T]] {
 }
 
 /**
- * Since maps are mutable, this always makes a full copy. Prefer scala immutable maps
- * if you use scala immutable maps, this operation is much faster
- * TODO extend this to Group, Ring
- */
+  * Since maps are mutable, this always makes a full copy. Prefer scala immutable maps
+  * if you use scala immutable maps, this operation is much faster
+  * TODO extend this to Group, Ring
+  */
 class JMapMonoid[K, V: Semigroup] extends Monoid[JMap[K, V]] {
   override lazy val zero = new java.util.HashMap[K, V](0)
 
@@ -114,7 +123,11 @@ class JMapMonoid[K, V: Semigroup] extends Monoid[JMap[K, V]] {
       case _ => true
     })
   override def plus(x: JMap[K, V], y: JMap[K, V]) = {
-    val (big, small, bigOnLeft) = if (x.size > y.size) { (x, y, true) } else { (y, x, false) }
+    val (big, small, bigOnLeft) = if (x.size > y.size) {
+      (x, y, true)
+    } else {
+      (y, x, false)
+    }
     val vsemi = implicitly[Semigroup[V]]
     val result = new java.util.HashMap[K, V](big.size + small.size)
     result.putAll(big)
@@ -123,7 +136,8 @@ class JMapMonoid[K, V: Semigroup] extends Monoid[JMap[K, V]] {
       val smallV = kv.getValue
       if (big.containsKey(smallK)) {
         val bigV = big.get(smallK)
-        val newV = if (bigOnLeft) vsemi.plus(bigV, smallV) else vsemi.plus(smallV, bigV)
+        val newV =
+          if (bigOnLeft) vsemi.plus(bigV, smallV) else vsemi.plus(smallV, bigV)
         if (nonZero(newV))
           result.put(smallK, newV)
         else

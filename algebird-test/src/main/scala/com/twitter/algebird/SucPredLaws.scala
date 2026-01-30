@@ -12,11 +12,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
-import org.scalacheck.{ Arbitrary, Prop }
+import org.scalacheck.{Arbitrary, Prop}
 import org.scalacheck.Prop.forAll
 
 object SuccessibleLaws {
@@ -37,14 +37,15 @@ object SuccessibleLaws {
     }
 
   /**
-   * Use this to test your implementations:
-   * property("My succ") {
-   * successibleLaws[MyType]
-   * }
-   *
-   */
-  def successibleLaws[T: Successible: Arbitrary]: Prop = forAll { (t: T, size: Short) =>
-    law(t) && iterateNextIncreases(t, size)
+    * Use this to test your implementations:
+    * property("My succ") {
+    * successibleLaws[MyType]
+    * }
+    *
+    */
+  def successibleLaws[T: Successible: Arbitrary]: Prop = forAll {
+    (t: T, size: Short) =>
+      law(t) && iterateNextIncreases(t, size)
   }
 }
 
@@ -60,19 +61,21 @@ object PredecessibleLaws {
 
   def iteratePrevDecreases[T: Predecessible](t: T, size: Short): Boolean =
     Predecessible.iteratePrev(t).take(size.toInt).sliding(2).forall {
-      case a :: b :: Nil => implicitly[Predecessible[T]].partialOrdering.lt(b, a)
+      case a :: b :: Nil =>
+        implicitly[Predecessible[T]].partialOrdering.lt(b, a)
       case a :: Nil => true
       case s => sys.error("should never happen: " + s)
     }
 
   /**
-   * Use this to test your implementations:
-   * property("My succ") {
-   * predessibleLaws[MyType]
-   * }
-   *
-   */
-  def predessibleLaws[T: Predecessible: Arbitrary]: Prop = forAll { (t: T, size: Short) =>
-    law(t) && iteratePrevDecreases(t, size)
+    * Use this to test your implementations:
+    * property("My succ") {
+    * predessibleLaws[MyType]
+    * }
+    *
+    */
+  def predessibleLaws[T: Predecessible: Arbitrary]: Prop = forAll {
+    (t: T, size: Short) =>
+      law(t) && iteratePrevDecreases(t, size)
   }
 }

@@ -1,21 +1,21 @@
 package com.twitter.algebird
 
 /**
- * Priority is a type class for prioritized implicit search.
- *
- * This type class will attempt to provide an implicit instance of `P`
- * (the preferred type). If that type is not available it will
- * fallback to `F` (the fallback type). If neither type is available
- * then a `Priority[P, F]` instance will not be available.
- *
- * This type can be useful for problems where multiple algorithms can
- * be used, depending on the type classes available.
- *
- * taken from non/algebra until we make algebird depend on non/algebra
- */
+  * Priority is a type class for prioritized implicit search.
+  *
+  * This type class will attempt to provide an implicit instance of `P`
+  * (the preferred type). If that type is not available it will
+  * fallback to `F` (the fallback type). If neither type is available
+  * then a `Priority[P, F]` instance will not be available.
+  *
+  * This type can be useful for problems where multiple algorithms can
+  * be used, depending on the type classes available.
+  *
+  * taken from non/algebra until we make algebird depend on non/algebra
+  */
 sealed trait Priority[+P, +F] {
 
-  import Priority.{ Preferred, Fallback }
+  import Priority.{Preferred, Fallback}
 
   def fold[B](f1: P => B)(f2: F => B): B =
     this match {

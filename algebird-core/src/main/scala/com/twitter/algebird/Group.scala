@@ -12,20 +12,28 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
-import java.lang.{ Integer => JInt, Short => JShort, Long => JLong, Float => JFloat, Double => JDouble, Boolean => JBool }
-import java.util.{ List => JList, Map => JMap }
+import java.lang.{
+  Integer => JInt,
+  Short => JShort,
+  Long => JLong,
+  Float => JFloat,
+  Double => JDouble,
+  Boolean => JBool
+}
+import java.util.{List => JList, Map => JMap}
 
 import scala.reflect.ClassTag
 
 import scala.annotation.implicitNotFound
 import scala.math.Equiv
+
 /**
- * Group: this is a monoid that also has subtraction (and negation):
- *   So, you can do (a-b), or -a (which is equal to 0 - a).
- */
+  * Group: this is a monoid that also has subtraction (and negation):
+  *   So, you can do (a-b), or -a (which is equal to 0 - a).
+  */
 
 @implicitNotFound(msg = "Cannot find Group type class for ${T}")
 trait Group[@specialized(Int, Long, Float, Double) T] extends Monoid[T] {
@@ -56,30 +64,35 @@ object UnitGroup extends ConstantGroup[Unit](())
 object NullGroup extends ConstantGroup[Null](null)
 
 /**
- * Some(5) - Some(3) == Some(2)
- * Some(5) - Some(5) == None
- * negate Some(5) == Some(-5)
- * Note: Some(0) and None are equivalent under this Group
- */
-class OptionGroup[T](implicit group: Group[T]) extends OptionMonoid[T]
-  with Group[Option[T]] {
+  * Some(5) - Some(3) == Some(2)
+  * Some(5) - Some(5) == None
+  * negate Some(5) == Some(-5)
+  * Note: Some(0) and None are equivalent under this Group
+  */
+class OptionGroup[T](implicit group: Group[T])
+    extends OptionMonoid[T]
+    with Group[Option[T]] {
 
   override def isNonZero(opt: Option[T]): Boolean =
-    opt.exists{ group.isNonZero(_) }
+    opt.exists { group.isNonZero(_) }
 
   override def negate(opt: Option[T]) =
-    opt.map{ v => group.negate(v) }
+    opt.map { v =>
+      group.negate(v)
+    }
 }
 
 /**
- * Extends pair-wise sum Array monoid into a Group
- * negate is defined as the negation of each element of the array.
- */
+  * Extends pair-wise sum Array monoid into a Group
+  * negate is defined as the negation of each element of the array.
+  */
 class ArrayGroup[T: ClassTag](implicit grp: Group[T])
-  extends ArrayMonoid[T]() with Group[Array[T]] {
-  override def negate(g: Array[T]): Array[T] = g.map {
-    grp.negate(_)
-  }.toArray
+    extends ArrayMonoid[T]()
+    with Group[Array[T]] {
+  override def negate(g: Array[T]): Array[T] =
+    g.map {
+      grp.negate(_)
+    }.toArray
 }
 
 object Group extends GeneratedGroupImplicits with ProductGroups {
@@ -87,9 +100,11 @@ object Group extends GeneratedGroupImplicits with ProductGroups {
   def negate[T](x: T)(implicit grp: Group[T]) = grp.negate(x)
   def minus[T](l: T, r: T)(implicit grp: Group[T]) = grp.minus(l, r)
   // nonZero and subtraction give an equiv, useful for Map[K,V]
-  def equiv[T](implicit grp: Group[T]): Equiv[T] = Equiv.fromFunction[T] { (a, b) =>
-    !grp.isNonZero(grp.minus(a, b))
+  def equiv[T](implicit grp: Group[T]): Equiv[T] = Equiv.fromFunction[T] {
+    (a, b) =>
+      !grp.isNonZero(grp.minus(a, b))
   }
+
   /** Same as v + v + v .. + v (i times in total) */
   def intTimes[T](i: BigInt, v: T)(implicit grp: Group[T]): T =
     if (i < 0) {
@@ -114,7 +129,10 @@ object Group extends GeneratedGroupImplicits with ProductGroups {
   implicit val doubleGroup: Group[Double] = DoubleField
   implicit val jdoubleGroup: Group[JDouble] = JDoubleField
   implicit def optionGroup[T: Group] = new OptionGroup[T]
-  implicit def indexedSeqGroup[T: Group]: Group[IndexedSeq[T]] = new IndexedSeqGroup[T]
-  implicit def mapGroup[K, V](implicit group: Group[V]) = new MapGroup[K, V]()(group)
-  implicit def scMapGroup[K, V](implicit group: Group[V]) = new ScMapGroup[K, V]()(group)
+  implicit def indexedSeqGroup[T: Group]: Group[IndexedSeq[T]] =
+    new IndexedSeqGroup[T]
+  implicit def mapGroup[K, V](implicit group: Group[V]) =
+    new MapGroup[K, V]()(group)
+  implicit def scMapGroup[K, V](implicit group: Group[V]) =
+    new ScMapGroup[K, V]()(group)
 }

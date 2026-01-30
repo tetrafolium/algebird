@@ -1,6 +1,6 @@
 package com.twitter.algebird.spark
 
-import com.twitter.algebird.{ MapAlgebra, Semigroup, Monoid, Min }
+import com.twitter.algebird.{MapAlgebra, Semigroup, Monoid, Min}
 import org.apache.spark._
 import org.apache.spark.rdd._
 import org.scalatest._
@@ -29,28 +29,42 @@ class AlgebirdRDDTest extends FunSuite with BeforeAndAfter {
     sc = new SparkContext(conf)
   }
 
-  after { if (sc != null) { sc.stop() } }
-
-  // Why does scala.math.Equiv suck so much.
-  implicit def optEq[V](implicit eq: Equiv[V]): Equiv[Option[V]] = Equiv.fromFunction[Option[V]] { (o1, o2) =>
-    (o1, o2) match {
-      case (Some(v1), Some(v2)) => eq.equiv(v1, v2)
-      case (None, None) => true
-      case _ => false
+  after {
+    if (sc != null) {
+      sc.stop()
     }
   }
+
+  // Why does scala.math.Equiv suck so much.
+  implicit def optEq[V](implicit eq: Equiv[V]): Equiv[Option[V]] =
+    Equiv.fromFunction[Option[V]] { (o1, o2) =>
+      (o1, o2) match {
+        case (Some(v1), Some(v2)) => eq.equiv(v1, v2)
+        case (None, None) => true
+        case _ => false
+      }
+    }
 
   def equiv[V](a: V, b: V)(implicit eq: Equiv[V]): Boolean = eq.equiv(a, b)
   def assertEq[V: Equiv](a: V, b: V): Unit = assert(equiv(a, b))
 
-  def aggregate[T: ClassTag, U: ClassTag, V: Equiv](s: Seq[T], agg: AlgebirdAggregator[T, U, V]) {
+  def aggregate[T: ClassTag, U: ClassTag, V: Equiv](
+      s: Seq[T],
+      agg: AlgebirdAggregator[T, U, V]
+  ) {
     assertEq(sc.makeRDD(s).algebird.aggregate(agg), agg(s))
   }
 
-  def aggregateByKey[K: ClassTag, T: ClassTag, U: ClassTag, V: Equiv](s: Seq[(K, T)], agg: AlgebirdAggregator[T, U, V]) {
-    val resMap = sc.makeRDD(s).algebird.aggregateByKey[K, T, U, V](agg).collect.toMap
+  def aggregateByKey[K: ClassTag, T: ClassTag, U: ClassTag, V: Equiv](
+      s: Seq[(K, T)],
+      agg: AlgebirdAggregator[T, U, V]
+  ) {
+    val resMap =
+      sc.makeRDD(s).algebird.aggregateByKey[K, T, U, V](agg).collect.toMap
     implicit val sg = agg.semigroup
-    val algMap = MapAlgebra.sumByKey(s.map { case (k, t) => k -> agg.prepare(t) }).mapValues(agg.present)
+    val algMap = MapAlgebra
+      .sumByKey(s.map { case (k, t) => k -> agg.prepare(t) })
+      .mapValues(agg.present)
     s.map(_._1).toSet.foreach { k: K =>
       assertEq(resMap.get(k), algMap.get(k))
     }
@@ -79,9 +93,18 @@ class AlgebirdRDDTest extends FunSuite with BeforeAndAfter {
     sumOption((0 to 1000).map(x => (x, x % 3)))
   }
   test("aggregateByKey") {
-    aggregateByKey((0 to 1000).map(k => (k % 3, k)), AlgebirdAggregator.fromSemigroup[Int])
-    aggregateByKey((0 to 1000).map(k => (k % 3, k)), AlgebirdAggregator.min[Int])
-    aggregateByKey((0 to 1000).map(k => (k % 3, k)), AlgebirdAggregator.sortedTake[Int](3))
+    aggregateByKey(
+      (0 to 1000).map(k => (k % 3, k)),
+      AlgebirdAggregator.fromSemigroup[Int]
+    )
+    aggregateByKey(
+      (0 to 1000).map(k => (k % 3, k)),
+      AlgebirdAggregator.min[Int]
+    )
+    aggregateByKey(
+      (0 to 1000).map(k => (k % 3, k)),
+      AlgebirdAggregator.sortedTake[Int](3)
+    )
   }
   test("sumByKey") {
     sumByKey((0 to 1000).map(k => (k % 3, k)))

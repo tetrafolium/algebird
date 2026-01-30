@@ -1,14 +1,15 @@
 package com.twitter.algebird
 
-import org.scalacheck.{ Gen, Arbitrary }
-import org.scalatest.{ PropSpec, Matchers }
+import org.scalacheck.{Gen, Arbitrary}
+import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 
 class AggregationMonoidSpecification extends CheckProperties {
   import BaseProperties._
   import Gen.choose
 
-  def approxEq(f1: Double, f2: Double) = (scala.math.abs(f1 - f2) / scala.math.abs(f2)) < 1e-10
+  def approxEq(f1: Double, f2: Double) =
+    (scala.math.abs(f1 - f2) / scala.math.abs(f2)) < 1e-10
 
   implicit val dcgen = Arbitrary {
     for {
@@ -53,10 +54,10 @@ class AggregationMonoidSpecification extends CheckProperties {
   property("Moments Group laws") {
     groupLawsEq[Moments] { (ml, mr) =>
       (ml.m0 == mr.m0) &&
-        approxEq(ml.m1, mr.m1) &&
-        approxEq(ml.m2, mr.m2) &&
-        approxEq(ml.m3, mr.m3) &&
-        approxEq(ml.m4, mr.m4)
+      approxEq(ml.m1, mr.m1) &&
+      approxEq(ml.m2, mr.m2) &&
+      approxEq(ml.m3, mr.m3) &&
+      approxEq(ml.m4, mr.m4)
     }
   }
 }

@@ -5,11 +5,13 @@ import org.scalatest._
 class MomentsGroupTest extends WordSpec with Matchers {
 
   /**
-   * Given a list of doubles, create a Moments object to hold
-   * the list's central moments.
-   */
+    * Given a list of doubles, create a Moments object to hold
+    * the list's central moments.
+    */
   def getMoments(xs: List[Double]): Moments =
-    xs.foldLeft(MomentsGroup.zero) { (m, x) => MomentsGroup.plus(m, Moments(x)) }
+    xs.foldLeft(MomentsGroup.zero) { (m, x) =>
+      MomentsGroup.plus(m, Moments(x))
+    }
 
   def testApproxEq(f1: Double, f2: Double) {
     if (f2 == 0)

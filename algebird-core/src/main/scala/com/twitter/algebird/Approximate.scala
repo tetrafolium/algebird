@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
@@ -67,45 +67,51 @@ object ApproximateBoolean {
 }
 
 // Note the probWithinBounds is a LOWER BOUND (at least this probability)
-case class Approximate[N](min: N, estimate: N, max: N, probWithinBounds: Double)(implicit val numeric: Numeric[N]) {
+case class Approximate[N](min: N, estimate: N, max: N, probWithinBounds: Double)(
+    implicit val numeric: Numeric[N]
+) {
   require(numeric.lteq(min, estimate) && numeric.lteq(estimate, max))
 
   /**
-   * Is this value contained within the bounds?
-   * Contract is:
-   * Prob(boundsContain(estimate)) >= probWithinBounds
-   */
-  def boundsContain(v: N): Boolean = numeric.lteq(min, v) && numeric.lteq(v, max)
+    * Is this value contained within the bounds?
+    * Contract is:
+    * Prob(boundsContain(estimate)) >= probWithinBounds
+    */
+  def boundsContain(v: N): Boolean =
+    numeric.lteq(min, v) && numeric.lteq(v, max)
 
   def contains(v: N): ApproximateBoolean =
     ApproximateBoolean(boundsContain(v), probWithinBounds)
 
   /**
-   * This is so you can do: val x = Approximate(1.0, 1.1, 1.2, 0.99)
-   * and then x ~ 1.05 returns true
-   */
+    * This is so you can do: val x = Approximate(1.0, 1.1, 1.2, 0.99)
+    * and then x ~ 1.05 returns true
+    */
   def ~(v: N): Boolean = boundsContain(v)
 
   def isExact: Boolean = (probWithinBounds == 1.0) && numeric.equiv(min, max)
 
   def +(right: Approximate[N]): Approximate[N] = {
     val n = numeric
-    Approximate(n.plus(min, right.min),
+    Approximate(
+      n.plus(min, right.min),
       n.plus(estimate, right.estimate),
       n.plus(max, right.max),
-      probWithinBounds * right.probWithinBounds)
+      probWithinBounds * right.probWithinBounds
+    )
   }
   def -(right: Approximate[N]): Approximate[N] = {
     this.+(right.negate)
   }
+
   /**
-   * This is not distributive, because:
-   * a*(b+c) has two probability multiplications
-   * while (a*b + a*b) has three
-   * Some kind of general formula solver could possibly
-   * make this distributive, but in the mean time, it's only
-   * a group
-   */
+    * This is not distributive, because:
+    * a*(b+c) has two probability multiplications
+    * while (a*b + a*b) has three
+    * Some kind of general formula solver could possibly
+    * make this distributive, but in the mean time, it's only
+    * a group
+    */
   def *(right: Approximate[N]): Approximate[N] =
     if (right.isZero || isOne) {
       right
@@ -113,15 +119,18 @@ case class Approximate[N](min: N, estimate: N, max: N, probWithinBounds: Double)
       this
     } else {
       val n = numeric
-      val ends = for (
-        leftv <- List(min, max);
-        rightv <- List(right.min, right.max)
-      ) yield n.times(leftv, rightv)
+      val ends =
+        for (leftv <- List(min, max);
+          rightv <- List(right.min, right.max)) yield n.times(leftv, rightv)
 
       val newProb = probWithinBounds * right.probWithinBounds
 
-      Approximate(ends.min, n.times(estimate, right.estimate),
-        ends.max, newProb)
+      Approximate(
+        ends.min,
+        n.times(estimate, right.estimate),
+        ends.max,
+        newProb
+      )
     }
 
   def isZero: Boolean =

@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
@@ -23,7 +23,9 @@ class AdjoinedRingSpecification extends CheckProperties {
   import com.twitter.algebird.BaseProperties._
 
   implicit def adjoined[T: Arbitrary]: Arbitrary[AdjoinedUnit[T]] = Arbitrary {
-    implicitly[Arbitrary[T]].arbitrary.map { t => AdjoinedUnit(t) }
+    implicitly[Arbitrary[T]].arbitrary.map { t =>
+      AdjoinedUnit(t)
+    }
   }
   // AdjoinedUnit requires this method to be correct, so it is tested here:
   property("intTimes works correctly") {

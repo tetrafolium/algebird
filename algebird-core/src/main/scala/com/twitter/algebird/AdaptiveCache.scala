@@ -12,29 +12,28 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
 /**
- * @author Avi Bryant
- */
-
+  * @author Avi Bryant
+  */
 import collection.mutable.HashMap
 import ref.SoftReference
 
 /**
- * This is a summing cache whose goal is to grow until we run out of memory,
- * at which point it clears itself and stops growing.
- * Note that we can lose the values in this cache at any point;
- * we don't put anything here we care about.
- */
+  * This is a summing cache whose goal is to grow until we run out of memory,
+  * at which point it clears itself and stops growing.
+  * Note that we can lose the values in this cache at any point;
+  * we don't put anything here we care about.
+  */
 class SentinelCache[K, V](implicit sgv: Semigroup[V]) {
   private val map = new SoftReference(new HashMap[K, V]())
 
-  def size = map.get.map{ _.size }.getOrElse(0)
+  def size = map.get.map { _.size }.getOrElse(0)
 
-  def clear { map.get.foreach{ _.clear } }
+  def clear { map.get.foreach { _.clear } }
 
   def stopGrowing { map.clear }
 
@@ -43,29 +42,32 @@ class SentinelCache[K, V](implicit sgv: Semigroup[V]) {
       in.foreach {
         case (k, v) =>
           val newValue =
-            map
-              .get
-              .flatMap{ _.get(k) }
-              .map{ oldV => sgv.plus(oldV, v) }
+            map.get
+              .flatMap { _.get(k) }
+              .map { oldV =>
+                sgv.plus(oldV, v)
+              }
               .getOrElse(v)
 
-          map.get.foreach{ _.put(k, newValue) }
+          map.get.foreach { _.put(k, newValue) }
       }
     }
   }
 }
 
 /**
- * This is a wrapper around SummingCache that attempts to grow the capacity
- * by up to some maximum, as long as there's enough RAM.
- * It determines that there's enough RAM to grow by maintaining a SentinelCache
- * which keeps caching and summing the evicted values.
- * Once the SentinelCache has grown to the same size as the current cache,
- * plus some margin, without running out of RAM, then this indicates that we
- * have enough headroom to double the capacity.
- */
-class AdaptiveCache[K, V: Semigroup](maxCapacity: Int, growthMargin: Double = 3.0)
-  extends StatefulSummer[Map[K, V]] {
+  * This is a wrapper around SummingCache that attempts to grow the capacity
+  * by up to some maximum, as long as there's enough RAM.
+  * It determines that there's enough RAM to grow by maintaining a SentinelCache
+  * which keeps caching and summing the evicted values.
+  * Once the SentinelCache has grown to the same size as the current cache,
+  * plus some margin, without running out of RAM, then this indicates that we
+  * have enough headroom to double the capacity.
+  */
+class AdaptiveCache[K, V: Semigroup](
+    maxCapacity: Int,
+    growthMargin: Double = 3.0
+) extends StatefulSummer[Map[K, V]] {
 
   require(maxCapacity >= 0, "Cannot have negative capacity")
   private var currentCapacity = 1
@@ -74,7 +76,9 @@ class AdaptiveCache[K, V: Semigroup](maxCapacity: Int, growthMargin: Double = 3.
   private val sentinelCache = new SentinelCache[K, V]
 
   private def update(evicted: Option[Map[K, V]]) = {
-    evicted.foreach{ e => sentinelCache.put(e) }
+    evicted.foreach { e =>
+      sentinelCache.put(e)
+    }
 
     var ret = evicted
 
@@ -100,7 +104,8 @@ class AdaptiveCache[K, V: Semigroup](maxCapacity: Int, growthMargin: Double = 3.
 
   override def semigroup = summingCache.semigroup
 
-  override def put(m: Map[K, V]): Option[Map[K, V]] = update(summingCache.put(m))
+  override def put(m: Map[K, V]): Option[Map[K, V]] =
+    update(summingCache.put(m))
 
   override def flush: Option[Map[K, V]] = {
     val ret = summingCache.flush

@@ -12,24 +12,26 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird.statistics
 
-import com.twitter.algebird.{ Semigroup, Monoid, Group, Ring }
+import com.twitter.algebird.{Semigroup, Monoid, Group, Ring}
 
 /**
- * These wrappers can be used to collect statistics around usage of monoids
- * They are thread safe unless false is passed to the constructor (to remove overhead when threads are not used)
- *
- * @author Julien Le Dem
- */
-
+  * These wrappers can be used to collect statistics around usage of monoids
+  * They are thread safe unless false is passed to the constructor (to remove overhead when threads are not used)
+  *
+  * @author Julien Le Dem
+  */
 /** collect statistics about the calls to the wrapped Semigroup */
-class StatisticsSemigroup[T](threadSafe: Boolean = true)(implicit wrappedSemigroup: Semigroup[T])
-  extends Semigroup[T] {
+class StatisticsSemigroup[T](threadSafe: Boolean = true)(
+    implicit wrappedSemigroup: Semigroup[T]
+) extends Semigroup[T] {
 
   private[this] final val plusCallsCount = Counter(threadSafe)
-  private[this] final val sumOptionCallsStats = new IterCallStatistics(threadSafe)
+  private[this] final val sumOptionCallsStats = new IterCallStatistics(
+    threadSafe
+  )
 
   // access to collected stats
   def getPlusCallCount: Long = plusCallsCount.get
@@ -50,10 +52,12 @@ class StatisticsSemigroup[T](threadSafe: Boolean = true)(implicit wrappedSemigro
 }
 
 /**
- * @see StatisticsSemigroup
- */
-class StatisticsMonoid[T](threadSafe: Boolean = true)(implicit wrappedMonoid: Monoid[T])
-  extends StatisticsSemigroup[T](threadSafe) with Monoid[T] {
+  * @see StatisticsSemigroup
+  */
+class StatisticsMonoid[T](threadSafe: Boolean = true)(
+    implicit wrappedMonoid: Monoid[T]
+) extends StatisticsSemigroup[T](threadSafe)
+    with Monoid[T] {
 
   private[this] final val zeroCallsCount = Counter(threadSafe)
   private[this] final val sumCallsStats = new IterCallStatistics(threadSafe)
@@ -78,10 +82,11 @@ class StatisticsMonoid[T](threadSafe: Boolean = true)(implicit wrappedMonoid: Mo
 }
 
 /**
- * @see StatisticsSemigroup
- */
+  * @see StatisticsSemigroup
+  */
 class StatisticsGroup[T](threadSafe: Boolean = true)(implicit group: Group[T])
-  extends StatisticsMonoid[T](threadSafe) with Group[T] {
+    extends StatisticsMonoid[T](threadSafe)
+    with Group[T] {
 
   private[this] final val negateCallsCount = Counter(threadSafe)
   private[this] final val minusCallsCount = Counter(threadSafe)
@@ -107,10 +112,11 @@ class StatisticsGroup[T](threadSafe: Boolean = true)(implicit group: Group[T])
 }
 
 /**
- * @see StatisticsSemigroup
- */
+  * @see StatisticsSemigroup
+  */
 class StatisticsRing[T](threadSafe: Boolean = true)(implicit ring: Ring[T])
-  extends StatisticsGroup[T](threadSafe) with Ring[T] {
+    extends StatisticsGroup[T](threadSafe)
+    with Ring[T] {
 
   private[this] final val oneCallsCount = Counter(threadSafe)
   private[this] final val timesCallsCount = Counter(threadSafe)
@@ -141,4 +147,3 @@ class StatisticsRing[T](threadSafe: Boolean = true)(implicit ring: Ring[T])
       "time calls: " + timesCallsCount + "\n" +
       "product calls: " + productCallsStats
 }
-

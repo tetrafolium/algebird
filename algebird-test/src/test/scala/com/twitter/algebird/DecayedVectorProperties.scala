@@ -12,16 +12,17 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
-import org.scalacheck.{ Arbitrary, Gen }
+import org.scalacheck.{Arbitrary, Gen}
 
 class DecayedVectorProperties extends CheckProperties {
   import com.twitter.algebird.BaseProperties._
 
-  implicit val mpint: Arbitrary[DecayedVector[({ type x[a] = Map[Int, a] })#x]] = Arbitrary {
+  implicit val mpint
+      : Arbitrary[DecayedVector[({ type x[a] = Map[Int, a] })#x]] = Arbitrary {
     for {
       t <- Gen.choose(1e-5, 200.0) // Not too high so as to avoid numerical issues
       m <- Arbitrary.arbitrary[Map[Int, Double]]
@@ -29,7 +30,10 @@ class DecayedVectorProperties extends CheckProperties {
   }
 
   // TODO: we won't need this when we have an Equatable trait
-  def decayedMapEqFn(a: DecayedVector[({ type x[a] = Map[Int, a] })#x], b: DecayedVector[({ type x[a] = Map[Int, a] })#x]) = {
+  def decayedMapEqFn(
+      a: DecayedVector[({ type x[a] = Map[Int, a] })#x],
+      b: DecayedVector[({ type x[a] = Map[Int, a] })#x]
+  ) = {
     def beCloseTo(a: Double, b: Double, eps: Double = 1e-10) =
       a == b || (math.abs(a - b) / math.abs(a)) < eps || (a.isInfinite && b.isInfinite) || a.isNaN || b.isNaN
     val mapsAreClose = (a.vector.keySet ++ b.vector.keySet).forall { key =>

@@ -12,33 +12,36 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
 /**
- * This is an associative, but not commutative monoid
- * Also, you must start on the right, with a value, and all subsequent RightFolded must
- * be RightFoldedToFold objects or zero
- *
- * If you add two Folded values together, you always get the one on the left,
- * so this forms a kind of reset of the fold.
- */
+  * This is an associative, but not commutative monoid
+  * Also, you must start on the right, with a value, and all subsequent RightFolded must
+  * be RightFoldedToFold objects or zero
+  *
+  * If you add two Folded values together, you always get the one on the left,
+  * so this forms a kind of reset of the fold.
+  */
 object RightFolded {
   def monoid[In, Out](foldfn: (In, Out) => Out) =
     new Monoid[RightFolded[In, Out]] {
 
       val zero = RightFoldedZero
 
-      def plus(left: RightFolded[In, Out], right: RightFolded[In, Out]) = left match {
-        case RightFoldedValue(_) => left
-        case RightFoldedZero => right
-        case RightFoldedToFold(lList) => right match {
-          case RightFoldedZero => RightFoldedToFold(lList)
-          case RightFoldedValue(vr) => RightFoldedValue(lList.foldRight(vr)(foldfn))
-          case RightFoldedToFold(rList) => RightFoldedToFold(lList ++ rList)
+      def plus(left: RightFolded[In, Out], right: RightFolded[In, Out]) =
+        left match {
+          case RightFoldedValue(_) => left
+          case RightFoldedZero => right
+          case RightFoldedToFold(lList) =>
+            right match {
+              case RightFoldedZero => RightFoldedToFold(lList)
+              case RightFoldedValue(vr) =>
+                RightFoldedValue(lList.foldRight(vr)(foldfn))
+              case RightFoldedToFold(rList) => RightFoldedToFold(lList ++ rList)
+            }
         }
-      }
     }
 }
 

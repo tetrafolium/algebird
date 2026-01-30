@@ -18,7 +18,7 @@ package com.twitter.algebird.util
 
 import com.twitter.algebird.CheckProperties
 import com.twitter.algebird.MonadLaws.monadLaws
-import com.twitter.util.{ Await, Future, Return, Try }
+import com.twitter.util.{Await, Future, Return, Try}
 import org.scalacheck.Arbitrary
 
 class UtilAlgebraProperties extends CheckProperties {
@@ -33,12 +33,16 @@ class UtilAlgebraProperties extends CheckProperties {
 
   implicit def futureA[T: Arbitrary]: Arbitrary[Future[T]] =
     Arbitrary {
-      Arbitrary.arbitrary[T].map { l => Future.value(l) }
+      Arbitrary.arbitrary[T].map { l =>
+        Future.value(l)
+      }
     }
 
   implicit def returnA[T: Arbitrary]: Arbitrary[Try[T]] =
     Arbitrary {
-      Arbitrary.arbitrary[T].map { l => Return(l) }
+      Arbitrary.arbitrary[T].map { l =>
+        Return(l)
+      }
     }
 
   property("futureMonad") {

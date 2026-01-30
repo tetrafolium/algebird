@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird.mutable
 
 import com.twitter.algebird.Monoid
@@ -23,13 +23,14 @@ import scala.collection.JavaConverters._
 import java.util.PriorityQueue
 
 /**
- * for sort-with take and better performance over large values
- * The priority queues should be MAX queues, i.e. the ones we want least
- * should be in the .peek position
- * This is MUCH Faster for Top-K algorithms
- * Note this is MUTABLE. When you put something in plus, it is changed!
- */
-class PriorityQueueMonoid[K](max: Int)(implicit ord: Ordering[K]) extends Monoid[PriorityQueue[K]] {
+  * for sort-with take and better performance over large values
+  * The priority queues should be MAX queues, i.e. the ones we want least
+  * should be in the .peek position
+  * This is MUCH Faster for Top-K algorithms
+  * Note this is MUTABLE. When you put something in plus, it is changed!
+  */
+class PriorityQueueMonoid[K](max: Int)(implicit ord: Ordering[K])
+    extends Monoid[PriorityQueue[K]] {
 
   require(max > 0, "PriorityQueueMonoid requires keeping at least 1 item")
   // Java throws if you try to make a queue size 0
@@ -56,8 +57,12 @@ class PriorityQueueMonoid[K](max: Int)(implicit ord: Ordering[K]) extends Monoid
   override def zero = new PriorityQueue[K](MINQUEUESIZE, ord.reverse)
   override def isNonZero(q: PriorityQueue[K]) = q.size > 0
 
-  override def plus(left: PriorityQueue[K], right: PriorityQueue[K]): PriorityQueue[K] = {
-    val (bigger, smaller) = if (left.size >= right.size) (left, right) else (right, left)
+  override def plus(
+      left: PriorityQueue[K],
+      right: PriorityQueue[K]
+  ): PriorityQueue[K] = {
+    val (bigger, smaller) =
+      if (left.size >= right.size) (left, right) else (right, left)
     var biggest = bigger.peek
 
     var next = smaller.poll

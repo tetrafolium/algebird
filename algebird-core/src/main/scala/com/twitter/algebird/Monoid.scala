@@ -12,23 +12,30 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
 import scala.annotation.implicitNotFound
 import scala.math.Equiv
 import scala.reflect.ClassTag
 
-import java.lang.{ Integer => JInt, Short => JShort, Long => JLong, Float => JFloat, Double => JDouble, Boolean => JBool }
-import java.util.{ List => JList, Map => JMap }
+import java.lang.{
+  Integer => JInt,
+  Short => JShort,
+  Long => JLong,
+  Float => JFloat,
+  Double => JDouble,
+  Boolean => JBool
+}
+import java.util.{List => JList, Map => JMap}
 
-import scala.collection.mutable.{ Map => MMap }
-import scala.collection.{ Map => ScMap }
+import scala.collection.mutable.{Map => MMap}
+import scala.collection.{Map => ScMap}
 
 /**
- * Monoid (take a deep breath, and relax about the weird name):
- *   This is a semigroup that has an additive identity (called zero), such that a+0=a, 0+a=a, for every a
- */
+  * Monoid (take a deep breath, and relax about the weird name):
+  *   This is a semigroup that has an additive identity (called zero), such that a+0=a, 0+a=a, for every a
+  */
 
 @implicitNotFound(msg = "Cannot find Monoid type class for ${T}")
 trait Monoid[@specialized(Int, Long, Float, Double) T] extends Semigroup[T] {
@@ -36,7 +43,9 @@ trait Monoid[@specialized(Int, Long, Float, Double) T] extends Semigroup[T] {
   def isNonZero(v: T): Boolean = (v != zero)
   def assertNotZero(v: T) {
     if (!isNonZero(v)) {
-      throw new java.lang.IllegalArgumentException("argument should not be zero")
+      throw new java.lang.IllegalArgumentException(
+        "argument should not be zero"
+      )
     }
   }
 
@@ -55,9 +64,9 @@ trait Monoid[@specialized(Int, Long, Float, Double) T] extends Semigroup[T] {
 abstract class AbstractMonoid[T] extends Monoid[T]
 
 /**
- * Some(5) + Some(3) == Some(8)
- * Some(5) + None == Some(5)
- */
+  * Some(5) + Some(3) == Some(8)
+  * Some(5) + None == Some(5)
+  */
 class OptionMonoid[T](implicit semi: Semigroup[T]) extends Monoid[Option[T]] {
   def zero = None
   def plus(left: Option[T], right: Option[T]): Option[T] = {
@@ -74,7 +83,9 @@ class OptionMonoid[T](implicit semi: Semigroup[T]) extends Monoid[Option[T]] {
     else Some(semi.sumOption(items.filter(_.isDefined).map { _.get }))
 }
 
-class EitherMonoid[L, R](implicit semigroupl: Semigroup[L], monoidr: Monoid[R]) extends EitherSemigroup[L, R]()(semigroupl, monoidr) with Monoid[Either[L, R]] {
+class EitherMonoid[L, R](implicit semigroupl: Semigroup[L], monoidr: Monoid[R])
+    extends EitherSemigroup[L, R]()(semigroupl, monoidr)
+    with Monoid[Either[L, R]] {
   override lazy val zero = Right(monoidr.zero)
 }
 
@@ -87,9 +98,9 @@ object StringMonoid extends Monoid[String] {
 }
 
 /**
- * List concatenation monoid.
- * plus means concatenation, zero is empty list
- */
+  * List concatenation monoid.
+  * plus means concatenation, zero is empty list
+  */
 class ListMonoid[T] extends Monoid[List[T]] {
   override def zero = List[T]()
   override def plus(left: List[T], right: List[T]) = left ++ right
@@ -118,20 +129,22 @@ class SeqMonoid[T] extends Monoid[Seq[T]] {
 }
 
 /**
- * Pair-wise sum Array monoid.
- *
- * plus returns left[i] + right[i] for all array elements.
- * The resulting array will be as long as the longest array (with its elements duplicated)
- * zero is an empty array
- */
-class ArrayMonoid[T: ClassTag](implicit semi: Semigroup[T]) extends Monoid[Array[T]] {
+  * Pair-wise sum Array monoid.
+  *
+  * plus returns left[i] + right[i] for all array elements.
+  * The resulting array will be as long as the longest array (with its elements duplicated)
+  * zero is an empty array
+  */
+class ArrayMonoid[T: ClassTag](implicit semi: Semigroup[T])
+    extends Monoid[Array[T]] {
 
   //additive identity
   override def isNonZero(v: Array[T]): Boolean = v.nonEmpty
 
   override def zero = Array[T]()
   override def plus(left: Array[T], right: Array[T]) = {
-    val (longer, shorter) = if (left.length > right.length) (left, right) else (right, left)
+    val (longer, shorter) =
+      if (left.length > right.length) (left, right) else (right, left)
     val sum = longer.clone
     for (i <- 0 until shorter.length)
       sum.update(i, semi.plus(sum(i), shorter(i)))
@@ -141,9 +154,9 @@ class ArrayMonoid[T: ClassTag](implicit semi: Semigroup[T]) extends Monoid[Array
 }
 
 /**
- * Set union monoid.
- * plus means union, zero is empty set
- */
+  * Set union monoid.
+  * plus means union, zero is empty set
+  */
 class SetMonoid[T] extends Monoid[Set[T]] {
   override def zero = Set[T]()
   override def plus(left: Set[T], right: Set[T]) = left ++ right
@@ -151,22 +164,24 @@ class SetMonoid[T] extends Monoid[Set[T]] {
     if (items.isEmpty) None
     else {
       val mutable = scala.collection.mutable.Set[T]()
-      items.foreach { s => mutable ++= s }
+      items.foreach { s =>
+        mutable ++= s
+      }
       Some(mutable.toSet)
     }
 }
 
 /**
- * Function1 monoid.
- * plus means function composition, zero is the identity function
- */
+  * Function1 monoid.
+  * plus means function composition, zero is the identity function
+  */
 class Function1Monoid[T] extends Monoid[Function1[T, T]] {
   override def zero = identity[T]
 
   // (f1 + f2)(x) = f2(f1(x)) so that:
   // listOfFn.foldLeft(x) { (v, fn) => fn(v) } = (Monoid.sum(listOfFn))(x)
-  override def plus(f1: Function1[T, T], f2: Function1[T, T]) = {
-    (t: T) => f2(f1(t))
+  override def plus(f1: Function1[T, T], f2: Function1[T, T]) = { (t: T) =>
+    f2(f1(t))
   }
 }
 
@@ -185,9 +200,9 @@ object OrVal {
 }
 
 /**
- * Boolean OR monoid.
- * plus means logical OR, zero is false.
- */
+  * Boolean OR monoid.
+  * plus means logical OR, zero is false.
+  */
 object OrValMonoid extends Monoid[OrVal] {
   override def zero = OrVal(false)
   override def plus(l: OrVal, r: OrVal) = if (l.get) l else r
@@ -211,9 +226,9 @@ object AndVal {
 }
 
 /**
- * Boolean AND monoid.
- * plus means logical AND, zero is true.
- */
+  * Boolean AND monoid.
+  * plus means logical AND, zero is true.
+  */
 object AndValMonoid extends Monoid[AndVal] {
   override def zero = AndVal(true)
   override def plus(l: AndVal, r: AndVal) = if (l.get) r else l
@@ -228,9 +243,11 @@ object Monoid extends GeneratedMonoidImplicits with ProductMonoids {
   // strictly speaking, same as Semigroup, but most interesting examples
   // are monoids, and code already depends on this:
   def plus[T](l: T, r: T)(implicit monoid: Monoid[T]): T = monoid.plus(l, r)
-  def assertNotZero[T](v: T)(implicit monoid: Monoid[T]) = monoid.assertNotZero(v)
+  def assertNotZero[T](v: T)(implicit monoid: Monoid[T]) =
+    monoid.assertNotZero(v)
   def isNonZero[T](v: T)(implicit monoid: Monoid[T]) = monoid.isNonZero(v)
-  def nonZeroOption[T](v: T)(implicit monoid: Monoid[T]) = monoid.nonZeroOption(v)
+  def nonZeroOption[T](v: T)(implicit monoid: Monoid[T]) =
+    monoid.nonZeroOption(v)
   // Left sum: (((a + b) + c) + d)
   def sum[T](iter: TraversableOnce[T])(implicit monoid: Monoid[T]): T =
     monoid.sum(iter)
@@ -241,19 +258,23 @@ object Monoid extends GeneratedMonoidImplicits with ProductMonoids {
   }
 
   /**
-   * Return an Equiv[T] that uses isNonZero to return equality for all zeros
-   * useful for Maps/Vectors that have many equivalent in memory representations of zero
-   */
-  def zeroEquiv[T: Equiv: Monoid]: Equiv[T] = Equiv.fromFunction { (a: T, b: T) =>
-    (!isNonZero(a) && !isNonZero(b)) || Equiv[T].equiv(a, b)
+    * Return an Equiv[T] that uses isNonZero to return equality for all zeros
+    * useful for Maps/Vectors that have many equivalent in memory representations of zero
+    */
+  def zeroEquiv[T: Equiv: Monoid]: Equiv[T] = Equiv.fromFunction {
+    (a: T, b: T) =>
+      (!isNonZero(a) && !isNonZero(b)) || Equiv[T].equiv(a, b)
   }
 
   /**
-   * Same as v + v + v .. + v (i times in total)
-   * requires i >= 0, wish we had NonnegativeBigInt as a class
-   */
+    * Same as v + v + v .. + v (i times in total)
+    * requires i >= 0, wish we had NonnegativeBigInt as a class
+    */
   def intTimes[T](i: BigInt, v: T)(implicit mon: Monoid[T]): T = {
-    require(i >= 0, "Cannot do negative products with a Monoid, try Group.intTimes")
+    require(
+      i >= 0,
+      "Cannot do negative products with a Monoid, try Group.intTimes"
+    )
     if (i == 0) {
       mon.zero
     } else {
@@ -277,16 +298,24 @@ object Monoid extends GeneratedMonoidImplicits with ProductMonoids {
   implicit val doubleMonoid: Monoid[Double] = DoubleField
   implicit val jdoubleMonoid: Monoid[JDouble] = JDoubleField
   implicit val stringMonoid: Monoid[String] = StringMonoid
-  implicit def optionMonoid[T: Semigroup]: Monoid[Option[T]] = new OptionMonoid[T]
+  implicit def optionMonoid[T: Semigroup]: Monoid[Option[T]] =
+    new OptionMonoid[T]
   implicit def listMonoid[T]: Monoid[List[T]] = new ListMonoid[T]
   implicit def seqMonoid[T]: Monoid[Seq[T]] = new SeqMonoid[T]
-  implicit def arrayMonoid[T: ClassTag](implicit semi: Semigroup[T]) = new ArrayMonoid[T]
-  implicit def indexedSeqMonoid[T: Monoid]: Monoid[IndexedSeq[T]] = new IndexedSeqMonoid[T]
+  implicit def arrayMonoid[T: ClassTag](implicit semi: Semigroup[T]) =
+    new ArrayMonoid[T]
+  implicit def indexedSeqMonoid[T: Monoid]: Monoid[IndexedSeq[T]] =
+    new IndexedSeqMonoid[T]
   implicit def jlistMonoid[T]: Monoid[JList[T]] = new JListMonoid[T]
   implicit def setMonoid[T]: Monoid[Set[T]] = new SetMonoid[T]
-  implicit def mapMonoid[K, V: Semigroup]: Monoid[Map[K, V]] = new MapMonoid[K, V]
-  implicit def scMapMonoid[K, V: Semigroup]: Monoid[ScMap[K, V]] = new ScMapMonoid[K, V]
-  implicit def jmapMonoid[K, V: Semigroup]: Monoid[JMap[K, V]] = new JMapMonoid[K, V]
-  implicit def eitherMonoid[L: Semigroup, R: Monoid]: Monoid[Either[L, R]] = new EitherMonoid[L, R]
-  implicit def function1Monoid[T]: Monoid[Function1[T, T]] = new Function1Monoid[T]
+  implicit def mapMonoid[K, V: Semigroup]: Monoid[Map[K, V]] =
+    new MapMonoid[K, V]
+  implicit def scMapMonoid[K, V: Semigroup]: Monoid[ScMap[K, V]] =
+    new ScMapMonoid[K, V]
+  implicit def jmapMonoid[K, V: Semigroup]: Monoid[JMap[K, V]] =
+    new JMapMonoid[K, V]
+  implicit def eitherMonoid[L: Semigroup, R: Monoid]: Monoid[Either[L, R]] =
+    new EitherMonoid[L, R]
+  implicit def function1Monoid[T]: Monoid[Function1[T, T]] =
+    new Function1Monoid[T]
 }

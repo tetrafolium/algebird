@@ -12,19 +12,26 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
 import scala.annotation.tailrec
 import scala.annotation.implicitNotFound
 
-import java.lang.{ Integer => JInt, Short => JShort, Long => JLong, Float => JFloat, Double => JDouble, Boolean => JBool }
-import java.util.{ List => JList, Map => JMap }
+import java.lang.{
+  Integer => JInt,
+  Short => JShort,
+  Long => JLong,
+  Float => JFloat,
+  Double => JDouble,
+  Boolean => JBool
+}
+import java.util.{List => JList, Map => JMap}
 
 /**
- * Field: Ring + division. It is a generalization of Ring and adds support for inversion and
- *   multiplicative identity.
- */
+  * Field: Ring + division. It is a generalization of Ring and adds support for inversion and
+  *   multiplicative identity.
+  */
 
 @implicitNotFound(msg = "Cannot find Field type class for ${T}")
 trait Field[@specialized(Int, Long, Float, Double) T] extends Ring[T] {

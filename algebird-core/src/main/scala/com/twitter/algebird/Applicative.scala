@@ -12,25 +12,25 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
 import scala.annotation.implicitNotFound
 
 /**
- * Simple implementation of an Applicative type-class.
- * There are many choices for the canonical second operation (join, sequence, joinWith, ap),
- * all equivalent. For a Functor modeling concurrent computations with failure, like Future,
- * combining results with join can save a lot of time over combining with flatMap. (Given two
- * operations, if the second fails before the first completes, one can fail the entire computation
- * right then. With flatMap, one would have to wait for the first operation to complete before
- * failing it.)
- *
- * Laws Applicatives must follow:
- *  map(apply(x))(f) == apply(f(x))
- *  join(apply(x), apply(y)) == apply((x, y))
- *  (sequence and joinWith specialize join - they should behave appropriately)
- */
+  * Simple implementation of an Applicative type-class.
+  * There are many choices for the canonical second operation (join, sequence, joinWith, ap),
+  * all equivalent. For a Functor modeling concurrent computations with failure, like Future,
+  * combining results with join can save a lot of time over combining with flatMap. (Given two
+  * operations, if the second fails before the first completes, one can fail the entire computation
+  * right then. With flatMap, one would have to wait for the first operation to complete before
+  * failing it.)
+  *
+  * Laws Applicatives must follow:
+  *  map(apply(x))(f) == apply(f(x))
+  *  join(apply(x), apply(y)) == apply((x, y))
+  *  (sequence and joinWith specialize join - they should behave appropriately)
+  */
 @implicitNotFound(msg = "Cannot find Applicative type class for ${M}")
 trait Applicative[M[_]] extends Functor[M] {
   // in haskell, called return, but that's a reserved word
@@ -45,7 +45,9 @@ trait Applicative[M[_]] extends Functor[M] {
       case _ =>
         val mb =
           ms.foldLeft(apply(Seq.newBuilder[T])) { (mb, mt) =>
-            joinWith(mb, mt) { (b, t) => b += t }
+            joinWith(mb, mt) { (b, t) =>
+              b += t
+            }
           }
         map(mb) { _.result }
     }
@@ -55,35 +57,67 @@ trait Applicative[M[_]] extends Functor[M] {
   def join[T1, T2, T3](m1: M[T1], m2: M[T2], m3: M[T3]): M[(T1, T2, T3)] =
     joinWith(join(m1, m2), m3) { case ((t1, t2), t3) => (t1, t2, t3) }
 
-  def join[T1, T2, T3, T4](m1: M[T1], m2: M[T2], m3: M[T3], m4: M[T4]): M[(T1, T2, T3, T4)] =
-    joinWith(join(join(m1, m2), m3), m4) { case (((t1, t2), t3), t4) => (t1, t2, t3, t4) }
+  def join[T1, T2, T3, T4](
+      m1: M[T1],
+      m2: M[T2],
+      m3: M[T3],
+      m4: M[T4]
+  ): M[(T1, T2, T3, T4)] =
+    joinWith(join(join(m1, m2), m3), m4) {
+      case (((t1, t2), t3), t4) => (t1, t2, t3, t4)
+    }
 
-  def join[T1, T2, T3, T4, T5](m1: M[T1], m2: M[T2], m3: M[T3], m4: M[T4], m5: M[T5]): M[(T1, T2, T3, T4, T5)] =
-    joinWith(join(join(join(m1, m2), m3), m4), m5) { case ((((t1, t2), t3), t4), t5) => (t1, t2, t3, t4, t5) }
+  def join[T1, T2, T3, T4, T5](
+      m1: M[T1],
+      m2: M[T2],
+      m3: M[T3],
+      m4: M[T4],
+      m5: M[T5]
+  ): M[(T1, T2, T3, T4, T5)] =
+    joinWith(join(join(join(m1, m2), m3), m4), m5) {
+      case ((((t1, t2), t3), t4), t5) => (t1, t2, t3, t4, t5)
+    }
 }
 
 /**
- * For use from Java/minimizing code bloat in scala
- */
+  * For use from Java/minimizing code bloat in scala
+  */
 abstract class AbstractApplicative[M[_]] extends Applicative[M]
 
 /**
- * Follows the type-class pattern for the Applicative trait
- */
+  * Follows the type-class pattern for the Applicative trait
+  */
 object Applicative {
+
   /** Get the Applicative for a type, e.g: Applicative[List] */
   def apply[M[_]](implicit app: Applicative[M]): Applicative[M] = app
-  def join[M[_], T, U](mt: M[T], mu: M[U])(implicit app: Applicative[M]): M[(T, U)] =
+  def join[M[_], T, U](mt: M[T], mu: M[U])(
+      implicit app: Applicative[M]
+  ): M[(T, U)] =
     app.join(mt, mu)
-  def join[M[_], T1, T2, T3](m1: M[T1], m2: M[T2], m3: M[T3])(implicit app: Applicative[M]): M[(T1, T2, T3)] =
+  def join[M[_], T1, T2, T3](m1: M[T1], m2: M[T2], m3: M[T3])(
+      implicit app: Applicative[M]
+  ): M[(T1, T2, T3)] =
     app.join(m1, m2, m3)
-  def join[M[_], T1, T2, T3, T4](m1: M[T1], m2: M[T2], m3: M[T3], m4: M[T4])(implicit app: Applicative[M]): M[(T1, T2, T3, T4)] =
+  def join[M[_], T1, T2, T3, T4](m1: M[T1], m2: M[T2], m3: M[T3], m4: M[T4])(
+      implicit app: Applicative[M]
+  ): M[(T1, T2, T3, T4)] =
     app.join(m1, m2, m3, m4)
-  def join[M[_], T1, T2, T3, T4, T5](m1: M[T1], m2: M[T2], m3: M[T3], m4: M[T4], m5: M[T5])(implicit app: Applicative[M]): M[(T1, T2, T3, T4, T5)] =
+  def join[M[_], T1, T2, T3, T4, T5](
+      m1: M[T1],
+      m2: M[T2],
+      m3: M[T3],
+      m4: M[T4],
+      m5: M[T5]
+  )(implicit app: Applicative[M]): M[(T1, T2, T3, T4, T5)] =
     app.join(m1, m2, m3, m4, m5)
-  def sequence[M[_], T](ms: Seq[M[T]])(implicit app: Applicative[M]): M[Seq[T]] =
+  def sequence[M[_], T](
+      ms: Seq[M[T]]
+  )(implicit app: Applicative[M]): M[Seq[T]] =
     app.sequence(ms)
-  def joinWith[M[_], T, U, V](mt: M[T], mu: M[U])(fn: (T, U) => V)(implicit app: Applicative[M]): M[V] =
+  def joinWith[M[_], T, U, V](mt: M[T], mu: M[U])(
+      fn: (T, U) => V
+  )(implicit app: Applicative[M]): M[V] =
     app.joinWith(mt, mu)(fn)
 
   // Set up the syntax magic (allow .pure[Int] syntax and flatMap in for):
@@ -101,60 +135,66 @@ class PureOp[A](a: A) {
 }
 
 /**
- * This enrichment allows us to use our Applicative instances in for expressions:
- * if (import Applicative._) has been done
- */
-class ApplicativeOperators[A, M[_]](m: M[A])(implicit app: Applicative[M]) extends FunctorOperators[A, M](m) {
+  * This enrichment allows us to use our Applicative instances in for expressions:
+  * if (import Applicative._) has been done
+  */
+class ApplicativeOperators[A, M[_]](m: M[A])(implicit app: Applicative[M])
+    extends FunctorOperators[A, M](m) {
   def join[B](mb: M[B]): M[(A, B)] = app.join(m, mb)
   def joinWith[B, C](mb: M[B])(fn: (A, B) => C): M[C] = app.joinWith(m, mb)(fn)
 }
 
 /**
- * This is a Semigroup, for all Applicatives.
- */
-class ApplicativeSemigroup[T, M[_]](implicit ap: Applicative[M], sg: Semigroup[T])
-  extends Semigroup[M[T]] {
+  * This is a Semigroup, for all Applicatives.
+  */
+class ApplicativeSemigroup[T, M[_]](
+    implicit ap: Applicative[M],
+    sg: Semigroup[T]
+) extends Semigroup[M[T]] {
   def plus(l: M[T], r: M[T]) = ap.joinWith(l, r)(sg.plus)
 }
 
 /**
- * This is a Monoid, for all Applicatives.
- */
+  * This is a Monoid, for all Applicatives.
+  */
 class ApplicativeMonoid[T, M[_]](implicit app: Applicative[M], mon: Monoid[T])
-  extends ApplicativeSemigroup[T, M] with Monoid[M[T]] {
+    extends ApplicativeSemigroup[T, M]
+    with Monoid[M[T]] {
   lazy val zero = app(mon.zero)
 }
 
 /**
- * Group, Ring, and Field ARE NOT AUTOMATIC. You have to check that the laws hold for your
- * Applicative. If your M[_] is a wrapper type (Option[_], Some[_], Try[_], Future[_], etc...)
- * this generally works.
- */
+  * Group, Ring, and Field ARE NOT AUTOMATIC. You have to check that the laws hold for your
+  * Applicative. If your M[_] is a wrapper type (Option[_], Some[_], Try[_], Future[_], etc...)
+  * this generally works.
+  */
 class ApplicativeGroup[T, M[_]](implicit app: Applicative[M], grp: Group[T])
-  extends ApplicativeMonoid[T, M] with Group[M[T]] {
+    extends ApplicativeMonoid[T, M]
+    with Group[M[T]] {
   override def negate(v: M[T]) = app.map(v)(grp.negate)
   override def minus(l: M[T], r: M[T]) = app.joinWith(l, r)(grp.minus)
 }
 
 /**
- * Group, Ring, and Field ARE NOT AUTOMATIC. You have to check that the laws hold for your
- * Applicative. If your M[_] is a wrapper type (Option[_], Some[_], Try[_], Future[_], etc...)
- * this generally works.
- */
+  * Group, Ring, and Field ARE NOT AUTOMATIC. You have to check that the laws hold for your
+  * Applicative. If your M[_] is a wrapper type (Option[_], Some[_], Try[_], Future[_], etc...)
+  * this generally works.
+  */
 class ApplicativeRing[T, M[_]](implicit app: Applicative[M], ring: Ring[T])
-  extends ApplicativeGroup[T, M] with Ring[M[T]] {
+    extends ApplicativeGroup[T, M]
+    with Ring[M[T]] {
   lazy val one = app(ring.one)
   def times(l: M[T], r: M[T]) = app.joinWith(l, r)(ring.times)
 }
 
 /**
- * Group, Ring, and Field ARE NOT AUTOMATIC. You have to check that the laws hold for your
- * Applicative. If your M[_] is a wrapper type (Option[_], Some[_], Try[_], Future[_], etc...)
- * this generally works.
- */
+  * Group, Ring, and Field ARE NOT AUTOMATIC. You have to check that the laws hold for your
+  * Applicative. If your M[_] is a wrapper type (Option[_], Some[_], Try[_], Future[_], etc...)
+  * this generally works.
+  */
 class ApplicativeField[T, M[_]](implicit app: Applicative[M], fld: Field[T])
-  extends ApplicativeRing[T, M] with Field[M[T]] {
+    extends ApplicativeRing[T, M]
+    with Field[M[T]] {
   override def inverse(v: M[T]) = app.map(v)(fld.inverse)
   override def div(l: M[T], r: M[T]) = app.joinWith(l, r)(fld.div)
 }
-

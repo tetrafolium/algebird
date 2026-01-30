@@ -26,7 +26,7 @@ import scala.collection.breakOut
 /**
   * @author Ian O Connell
   *
-  * This is a simple asyncronous summer, where a shared mutable map is used between all readers/writers.
+  * This is a simple asynchronous summer, where a shared mutable map is used between all readers/writers.
   * When flushing it acquires the lock, drains the mutable map but does the compaction without holding the lock.
   */
 class AsyncListMMapSum[Key, Value](

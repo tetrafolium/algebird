@@ -2,10 +2,11 @@ package com.twitter.algebird.util.summer
 
 import java.util.concurrent.atomic.AtomicLong
 
-/**
- * @author Mansur Ashraf.
- */
+/** @author
+  *   Mansur Ashraf.
+  */
 case class Counter(name: String) extends Incrementor {
+
   private val counter = new AtomicLong()
 
   override def incr: Unit = counter.incrementAndGet()

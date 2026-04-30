@@ -11,6 +11,7 @@ import org.openjdk.jmh.infra.Blackhole
 
 import scala.math._
 class OldMonoid(bits: Int) extends HyperLogLogMonoid(bits) {
+
   import HyperLogLog._
 
   override def sumOption(items: TraversableOnce[HLL]): Option[HLL] =
@@ -26,6 +27,7 @@ object HllBenchmark {
 
   @State(Scope.Benchmark)
   class HLLState {
+
     var hllMonoid: HyperLogLogMonoid = _
     var oldHllMonoid: HyperLogLogMonoid = _
 
@@ -51,10 +53,13 @@ object HllBenchmark {
 
       val byteEncoder = implicitly[Injection[Long, Array[Byte]]]
       def setSize = rng.nextInt(10) + 1 // 1 -> 10
-      def hll(elements: Set[Long]): HLL = hllMonoid.batchCreate(elements)(byteEncoder)
+      def hll(elements: Set[Long]): HLL =
+        hllMonoid.batchCreate(elements)(byteEncoder)
 
       val inputIntermediate = (0L until numElements).map { _ =>
-        val setElements = (0 until setSize).map{ _ => rng.nextInt(1000).toLong }.toSet
+        val setElements = (0 until setSize).map { _ =>
+          rng.nextInt(1000).toLong
+        }.toSet
         (pow(numInputKeys, rng.nextFloat).toLong, List(hll(setElements)))
       }
       inputData = MapAlgebra.sumByKey(inputIntermediate).map(_._2).toSeq
@@ -63,6 +68,7 @@ object HllBenchmark {
 }
 
 class HllBenchmark {
+
   import HllBenchmark._
   @Benchmark
   def timeSumOption(state: HLLState, bh: Blackhole) = {

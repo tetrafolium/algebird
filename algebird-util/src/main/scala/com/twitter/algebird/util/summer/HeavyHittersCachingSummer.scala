@@ -28,7 +28,7 @@ import scala.collection.mutable.{Set => MSet, ListBuffer}
   *   Ian O Connell
   *
   * This class is designed to use a local mutable CMS to skip keeping low
-  * freqeuncy keys in a buffer.
+  * frequency keys in a buffer.
   */
 
 // The update frequency is how often we should update the mutable CMS

@@ -3,9 +3,10 @@ package com.twitter.algebird.statistics
 import com.twitter.algebird.CheckProperties
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen._
-import org.scalatest.{ Matchers, _ }
+import org.scalatest.{Matchers, _}
 
 class StatisticsRingLaws extends CheckProperties with Matchers {
+
   import com.twitter.algebird.BaseProperties._
 
   val statsRing = new StatisticsRing[Int]
@@ -18,6 +19,7 @@ class StatisticsRingLaws extends CheckProperties with Matchers {
 }
 
 class StatisticsMonoidLaws extends CheckProperties with Matchers {
+
   import com.twitter.algebird.BaseProperties._
 
   val statsMonoid = new StatisticsMonoid[Int]
@@ -59,13 +61,17 @@ class StatisticsTest extends WordSpec with Matchers {
     "count sum calls" in {
       assert(statsMonoid.getSumCallCount == 3000)
       assert(statsMonoid.getSumCallTime > 0L)
-      statsMonoid.toString.contains("sum calls: <1: 0, <2: 1, <4: 2, <8: 4, <16: 8, <32: 16, <64: 32, <128: 64, <256: 128, <512: 256, >: 2489, avg=1500.5 count=3000")
+      statsMonoid.toString.contains(
+        "sum calls: <1: 0, <2: 1, <4: 2, <8: 4, <16: 8, <32: 16, <64: 32, <128: 64, <256: 128, <512: 256, >: 2489, avg=1500.5 count=3000"
+      )
     }
 
     "count sumOption calls" in {
       assert(statsMonoid.getSumOptionCallCount == 2000)
       assert(statsMonoid.getSumOptionCallTime > 0L)
-      statsMonoid.toString.contains("sumOption calls: <1: 0, <2: 1, <4: 2, <8: 4, <16: 8, <32: 16, <64: 32, <128: 64, <256: 128, <512: 256, >: 1489, avg=1000.5 count=2000")
+      statsMonoid.toString.contains(
+        "sumOption calls: <1: 0, <2: 1, <4: 2, <8: 4, <16: 8, <32: 16, <64: 32, <128: 64, <256: 128, <512: 256, >: 1489, avg=1000.5 count=2000"
+      )
     }
 
   }

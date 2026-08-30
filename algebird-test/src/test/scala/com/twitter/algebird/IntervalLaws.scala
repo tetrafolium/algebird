@@ -12,12 +12,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
+
 import org.scalacheck.Prop._
 
 class IntervalLaws extends CheckProperties {
+
   import com.twitter.algebird.Generators._
   import com.twitter.algebird.Interval.GenIntersection
 
@@ -69,7 +71,7 @@ class IntervalLaws extends CheckProperties {
     forAll { (item: Long, intr: Interval[Long]) =>
       intr match {
         case Empty() => !intr.contains(item)
-        case _ => true // may be here
+        case _       => true // may be here
       }
     }
   }
@@ -104,27 +106,33 @@ class IntervalLaws extends CheckProperties {
     }
   }
 
-  def lowerUpperIntersection(low: Lower[Long], upper: Upper[Long], items: List[Long]) = {
+  def lowerUpperIntersection(
+      low: Lower[Long],
+      upper: Upper[Long],
+      items: List[Long]
+  ) = {
     if (low.intersects(upper)) {
-      low.least.map { lb =>
-        // This is the usual case
-        upper.contains(lb) || {
-          // but possibly we have: (lb, lb+1)
-          Equiv[Option[Long]].equiv(Some(lb), upper.strictUpperBound)
+      low.least
+        .map { lb =>
+          // This is the usual case
+          upper.contains(lb) || {
+            // but possibly we have: (lb, lb+1)
+            Equiv[Option[Long]].equiv(Some(lb), upper.strictUpperBound)
+          }
         }
-      }.getOrElse(true) &&
-        (low && upper match {
-          case Intersection(_, _) => true
-          case _ => false
-        })
+        .getOrElse(true) &&
+      (low && upper match {
+        case Intersection(_, _) => true
+        case _                  => false
+      })
     } else {
       // nothing is in both
       low.least.map(upper.contains(_) == false).getOrElse(true) &&
-        items.forall { i => (low.contains(i) && upper.contains(i)) == false } &&
-        (low && upper match {
-          case Empty() => true
-          case _ => false
-        })
+      items.forall { i => (low.contains(i) && upper.contains(i)) == false } &&
+      (low && upper match {
+        case Empty() => true
+        case _       => false
+      })
     }
   }
   property("If an a Lower intersects an Upper, the intersection is non Empty") {
@@ -137,17 +145,20 @@ class IntervalLaws extends CheckProperties {
   property("(n, n+1) follows the intersect law") {
     forAll { (n: Long) =>
       ((n == Long.MaxValue) ||
-        lowerUpperIntersection(ExclusiveLower(n), ExclusiveUpper(n + 1L), Nil))
+      lowerUpperIntersection(ExclusiveLower(n), ExclusiveUpper(n + 1L), Nil))
     }
   }
 
   property("toLeftClosedRightOpen is an Injection") {
     forAll { (intr: GenIntersection[Long], tests: List[Long]) =>
-      (intr.toLeftClosedRightOpen.map {
-        case Intersection(InclusiveLower(low), ExclusiveUpper(high)) =>
+      (intr.toLeftClosedRightOpen
+        .map { case Intersection(InclusiveLower(low), ExclusiveUpper(high)) =>
           val intr2 = Interval.leftClosedRightOpen(low, high)
           tests.forall { t => intr(t) == intr2(t) }
-      }.getOrElse(true)) // none means this can't be expressed as this kind of interval
+        }
+        .getOrElse(
+          true
+        )) // none means this can't be expressed as this kind of interval
     }
   }
 
@@ -187,18 +198,18 @@ class IntervalLaws extends CheckProperties {
       ((items1.size < 2) || items1.sliding(2).forall { it =>
         it.toList match {
           case low :: high :: Nil if low + 1L == high => true
-          case _ => false
+          case _                                      => false
         }
       } &&
-        {
-          val items2 = intr.greatestToLeast.take(100)
-          (items2.size < 2) || items2.sliding(2).forall { it =>
-            it.toList match {
-              case high :: low :: Nil if low + 1L == high => true
-              case _ => false
-            }
+      {
+        val items2 = intr.greatestToLeast.take(100)
+        (items2.size < 2) || items2.sliding(2).forall { it =>
+          it.toList match {
+            case high :: low :: Nil if low + 1L == high => true
+            case _                                      => false
           }
-        })
+        }
+      })
     }
   }
 }

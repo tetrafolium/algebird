@@ -20,6 +20,7 @@ import com.twitter.algebird.CheckProperties
 import org.scalacheck.Prop._
 
 class NullSummerProperties extends CheckProperties {
+
   import com.twitter.algebird.util.summer.AsyncSummerLaws._
 
   property("Summing with and without the summer should match") {

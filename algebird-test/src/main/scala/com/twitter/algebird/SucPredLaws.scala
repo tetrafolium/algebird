@@ -12,18 +12,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
-import org.scalacheck.{ Arbitrary, Prop }
+import org.scalacheck.{Arbitrary, Prop}
 import org.scalacheck.Prop.forAll
 
 object SuccessibleLaws {
+
   // Should always be true:
   def law[T: Successible](t: T): Boolean =
     Successible.next(t) match {
-      case None => true // t is the max
+      case None    => true // t is the max
       case Some(n) =>
         val pord = implicitly[Successible[T]].partialOrdering
         pord.lt(t, n)
@@ -32,27 +33,25 @@ object SuccessibleLaws {
   def iterateNextIncreases[T: Successible](t: T, size: Short): Boolean =
     Successible.iterateNext(t).take(size.toInt).sliding(2).forall {
       case a :: b :: Nil => implicitly[Successible[T]].partialOrdering.lt(a, b)
-      case a :: Nil => true
-      case s => sys.error("should never happen: " + s)
+      case a :: Nil      => true
+      case s             => sys.error("should never happen: " + s)
     }
 
-  /**
-   * Use this to test your implementations:
-   * property("My succ") {
-   * successibleLaws[MyType]
-   * }
-   *
-   */
-  def successibleLaws[T: Successible: Arbitrary]: Prop = forAll { (t: T, size: Short) =>
-    law(t) && iterateNextIncreases(t, size)
+  /** Use this to test your implementations: property("My succ") {
+    * successibleLaws[MyType] }
+    */
+  def successibleLaws[T: Successible: Arbitrary]: Prop = forAll {
+    (t: T, size: Short) =>
+      law(t) && iterateNextIncreases(t, size)
   }
 }
 
 object PredecessibleLaws {
+
   // Should always be true:
   def law[T: Predecessible](t: T): Boolean =
     Predecessible.prev(t) match {
-      case None => true // t is the max
+      case None    => true // t is the max
       case Some(p) =>
         val pord = implicitly[Predecessible[T]].partialOrdering
         pord.lt(p, t)
@@ -60,19 +59,17 @@ object PredecessibleLaws {
 
   def iteratePrevDecreases[T: Predecessible](t: T, size: Short): Boolean =
     Predecessible.iteratePrev(t).take(size.toInt).sliding(2).forall {
-      case a :: b :: Nil => implicitly[Predecessible[T]].partialOrdering.lt(b, a)
+      case a :: b :: Nil =>
+        implicitly[Predecessible[T]].partialOrdering.lt(b, a)
       case a :: Nil => true
-      case s => sys.error("should never happen: " + s)
+      case s        => sys.error("should never happen: " + s)
     }
 
-  /**
-   * Use this to test your implementations:
-   * property("My succ") {
-   * predessibleLaws[MyType]
-   * }
-   *
-   */
-  def predessibleLaws[T: Predecessible: Arbitrary]: Prop = forAll { (t: T, size: Short) =>
-    law(t) && iteratePrevDecreases(t, size)
+  /** Use this to test your implementations: property("My succ") {
+    * predessibleLaws[MyType] }
+    */
+  def predessibleLaws[T: Predecessible: Arbitrary]: Prop = forAll {
+    (t: T, size: Short) =>
+      law(t) && iteratePrevDecreases(t, size)
   }
 }

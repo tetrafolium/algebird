@@ -12,11 +12,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird.matrix
-import scala.collection.mutable.{ ArrayBuffer, Map => MMap }
-import com.twitter.algebird.{ Monoid, AdaptiveVector }
+
+import scala.collection.mutable.{ArrayBuffer, Map => MMap}
+import com.twitter.algebird.{Monoid, AdaptiveVector}
 
 object SparseColumnMatrix {
   def fromSeqMap[V: Monoid](cols: Int, data: IndexedSeq[MMap[Int, V]]) = {
@@ -27,7 +28,10 @@ object SparseColumnMatrix {
   }
 }
 
-case class SparseColumnMatrix[V: Monoid](rowsByColumns: IndexedSeq[AdaptiveVector[V]]) extends AdaptiveMatrix[V] {
+case class SparseColumnMatrix[V: Monoid](
+    rowsByColumns: IndexedSeq[AdaptiveVector[V]]
+) extends AdaptiveMatrix[V] {
+
   /** Row is the outer Seq, the columns are the inner vectors. */
 
   val valueMonoid = implicitly[Monoid[V]]
@@ -36,11 +40,14 @@ case class SparseColumnMatrix[V: Monoid](rowsByColumns: IndexedSeq[AdaptiveVecto
 
   override def cols: Int = rowsByColumns(0).size
 
-  def getValue(position: (Int, Int)): V = rowsByColumns(position._1)(position._2)
+  def getValue(position: (Int, Int)): V =
+    rowsByColumns(position._1)(position._2)
 
   def updated(position: (Int, Int), value: V): SparseColumnMatrix[V] = {
     val (row, col) = position
-    SparseColumnMatrix[V](rowsByColumns.updated(row, rowsByColumns(row).updated(col, value)))
+    SparseColumnMatrix[V](
+      rowsByColumns.updated(row, rowsByColumns(row).updated(col, value))
+    )
   }
 
   override def updateInto(buffer: ArrayBuffer[V]) {

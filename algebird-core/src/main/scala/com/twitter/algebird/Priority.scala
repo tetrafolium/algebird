@@ -1,26 +1,25 @@
 package com.twitter.algebird
 
-/**
- * Priority is a type class for prioritized implicit search.
- *
- * This type class will attempt to provide an implicit instance of `P`
- * (the preferred type). If that type is not available it will
- * fallback to `F` (the fallback type). If neither type is available
- * then a `Priority[P, F]` instance will not be available.
- *
- * This type can be useful for problems where multiple algorithms can
- * be used, depending on the type classes available.
- *
- * taken from non/algebra until we make algebird depend on non/algebra
- */
+/** Priority is a type class for prioritized implicit search.
+  *
+  * This type class will attempt to provide an implicit instance of `P` (the
+  * preferred type). If that type is not available it will fallback to `F` (the
+  * fallback type). If neither type is available then a `Priority[P, F]`
+  * instance will not be available.
+  *
+  * This type can be useful for problems where multiple algorithms can be used,
+  * depending on the type classes available.
+  *
+  * taken from non/algebra until we make algebird depend on non/algebra
+  */
 sealed trait Priority[+P, +F] {
 
-  import Priority.{ Preferred, Fallback }
+  import Priority.{Preferred, Fallback}
 
   def fold[B](f1: P => B)(f2: F => B): B =
     this match {
       case Preferred(x) => f1(x)
-      case Fallback(y) => f2(y)
+      case Fallback(y)  => f2(y)
     }
 
   def join[U >: P with F]: U =
@@ -29,7 +28,7 @@ sealed trait Priority[+P, +F] {
   def bimap[P2, F2](f1: P => P2)(f2: F => F2): Priority[P2, F2] =
     this match {
       case Preferred(x) => Preferred(f1(x))
-      case Fallback(y) => Fallback(f2(y))
+      case Fallback(y)  => Fallback(f2(y))
     }
 
   def toEither: Either[P, F] =

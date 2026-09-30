@@ -12,22 +12,29 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
 import scala.annotation.tailrec
 import scala.annotation.implicitNotFound
 
-import java.lang.{ Integer => JInt, Short => JShort, Long => JLong, Float => JFloat, Double => JDouble, Boolean => JBool }
-import java.util.{ List => JList, Map => JMap }
+import java.lang.{
+  Integer => JInt,
+  Short => JShort,
+  Long => JLong,
+  Float => JFloat,
+  Double => JDouble,
+  Boolean => JBool
+}
+import java.util.{List => JList, Map => JMap}
 
-/**
- * Field: Ring + division. It is a generalization of Ring and adds support for inversion and
- *   multiplicative identity.
- */
+/** Field: Ring + division. It is a generalization of Ring and adds support for
+  * inversion and multiplicative identity.
+  */
 
 @implicitNotFound(msg = "Cannot find Field type class for ${T}")
 trait Field[@specialized(Int, Long, Float, Double) T] extends Ring[T] {
+
   // default implementation uses div YOU MUST OVERRIDE ONE OF THESE
   def inverse(v: T): T = {
     assertNotZero(v)
@@ -44,6 +51,7 @@ trait Field[@specialized(Int, Long, Float, Double) T] extends Ring[T] {
 abstract class AbstractField[T] extends Field[T]
 
 object FloatField extends Field[Float] {
+
   override def one = 1.0f
   override def zero = 0.0f
   override def negate(v: Float) = -v
@@ -57,6 +65,7 @@ object FloatField extends Field[Float] {
 }
 
 object DoubleField extends Field[Double] {
+
   override def one = 1.0
   override def zero = 0.0
   override def negate(v: Double) = -v
@@ -70,6 +79,7 @@ object DoubleField extends Field[Double] {
 }
 
 object BooleanField extends Field[Boolean] {
+
   override def one = true
   override def zero = false
   override def negate(v: Boolean) = v
@@ -87,6 +97,7 @@ object BooleanField extends Field[Boolean] {
 }
 
 object Field {
+
   // This pattern is really useful for typeclasses
   def div[T](l: T, r: T)(implicit fld: Field[T]) = fld.div(l, r)
 

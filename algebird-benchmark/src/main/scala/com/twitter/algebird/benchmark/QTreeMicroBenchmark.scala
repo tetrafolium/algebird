@@ -9,6 +9,7 @@ object QTreeMicroBenchmark {
 
   @State(Scope.Benchmark)
   class QTreeMicroState {
+
     @Param(Array("0", "1", "3", "5"))
     var extendToLevel: Int = 0
 
@@ -29,7 +30,9 @@ object QTreeMicroBenchmark {
   }
 
   @annotation.tailrec
-  private final def extendToLevelDoubleBranch[A](q: QTree[A], n: Int)(implicit monoid: Monoid[A]): QTree[A] = {
+  private final def extendToLevelDoubleBranch[A](q: QTree[A], n: Int)(implicit
+      monoid: Monoid[A]
+  ): QTree[A] = {
     if (n <= q.level)
       q
     else {
@@ -47,7 +50,9 @@ object QTreeMicroBenchmark {
   }
 
   @annotation.tailrec
-  private final def extendToLevelSingleBranch[A](q: QTree[A], n: Int)(implicit monoid: Monoid[A]): QTree[A] = {
+  private final def extendToLevelSingleBranch[A](q: QTree[A], n: Int)(implicit
+      monoid: Monoid[A]
+  ): QTree[A] = {
     if (n <= q.level)
       q
     else {
@@ -68,6 +73,7 @@ object QTreeMicroBenchmark {
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @BenchmarkMode(Array(Mode.AverageTime))
 class QTreeMicroBenchmark {
+
   import QTreeMicroBenchmark._
 
   @Benchmark

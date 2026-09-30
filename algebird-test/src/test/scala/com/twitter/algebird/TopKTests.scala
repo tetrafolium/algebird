@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
@@ -25,6 +25,7 @@ import org.scalacheck.Prop._
 import scala.collection.JavaConverters._
 
 class TopKTests extends CheckProperties {
+
   import com.twitter.algebird.BaseProperties._
   val SIZE = 10
 
@@ -50,10 +51,10 @@ class TopKTests extends CheckProperties {
       pqIsCorrect(items)
     }
   }
-  /**
-   * The following were specific bugs that we failed some prior
-   * scalacheck (yay for randomized testing)
-   */
+
+  /** The following were specific bugs that we failed some prior scalacheck (yay
+    * for randomized testing)
+    */
   val pqPriorBugs = Seq(List(List(1, 1, 1, 2), List(0, 0, 0, 0, 0, 0, 0)))
   property("Specific regressions are handled") {
     pqPriorBugs.forall(pqIsCorrect(_))
@@ -72,7 +73,8 @@ class TopKTests extends CheckProperties {
   property("TopKMonoid works") {
     forAll { (its: List[List[Int]]) =>
       val correct = its.flatten.sorted.take(SIZE)
-      Equiv[List[Int]].equiv(Monoid.sum(its.map { l => tkmonoid.build(l) }).items, correct)
+      Equiv[List[Int]]
+        .equiv(Monoid.sum(its.map { l => tkmonoid.build(l) }).items, correct)
     }
   }
 

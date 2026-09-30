@@ -16,11 +16,12 @@ object AlgebirdBuild extends Build {
   def scalaBinaryVersion(scalaVersion: String) = scalaVersion match {
     case version if version startsWith "2.10" => "2.10"
     case version if version startsWith "2.11" => "2.11"
-    case _ => sys.error("unknown error")
+    case _                                    => sys.error("unknown error")
   }
-  def isScala210x(scalaVersion: String) = scalaBinaryVersion(scalaVersion) == "2.10"
+  def isScala210x(scalaVersion: String) =
+    scalaBinaryVersion(scalaVersion) == "2.10"
 
-  val sharedSettings = Project.defaultSettings ++ scalariformSettings ++  Seq(
+  val sharedSettings = Project.defaultSettings ++ scalariformSettings ++ Seq(
     organization := "com.twitter",
     scalaVersion := "2.10.5",
     crossScalaVersions := Seq("2.10.5", "2.11.7"),
@@ -28,20 +29,28 @@ object AlgebirdBuild extends Build {
 
     resolvers ++= Seq(
       "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
-      "releases"  at "http://oss.sonatype.org/content/repositories/releases"
+      "releases" at "http://oss.sonatype.org/content/repositories/releases"
     ),
 
     parallelExecution in Test := true,
 
     javacOptions ++= Seq("-target", "1.6", "-source", "1.6"),
 
-    scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xlint", "-language:implicitConversions", "-language:higherKinds", "-language:existentials"),
+    scalacOptions ++= Seq(
+      "-unchecked",
+      "-deprecation",
+      "-optimize",
+      "-Xlint",
+      "-language:implicitConversions",
+      "-language:higherKinds",
+      "-language:existentials"
+    ),
 
     scalacOptions <++= (scalaVersion) map { sv =>
-        if (sv startsWith "2.10")
-          Seq("-Xdivergence211")
-        else
-          Seq()
+      if (sv startsWith "2.10")
+        Seq("-Xdivergence211")
+      else
+        Seq()
     },
 
     javacOptions ++= Seq("-target", "1.6", "-source", "1.6"),
@@ -64,8 +73,7 @@ object AlgebirdBuild extends Build {
       )
     },
 
-    pomExtra := (
-      <url>https://github.com/twitter/algebird</url>
+    pomExtra := (<url>https://github.com/twitter/algebird</url>
       <licenses>
         <license>
           <name>Apache 2</name>
@@ -92,17 +100,15 @@ object AlgebirdBuild extends Build {
       </developers>)
   ) ++ mimaDefaultSettings
 
-
   lazy val formattingPreferences = {
     import scalariform.formatter.preferences._
-    FormattingPreferences().
-      setPreference(AlignParameters, false).
-      setPreference(PreserveSpaceBeforeArguments, true)
+    FormattingPreferences()
+      .setPreference(AlignParameters, false)
+      .setPreference(PreserveSpaceBeforeArguments, true)
   }
 
-  /**
-    * This returns the youngest jar we released that is compatible with
-    * the current.
+  /** This returns the youngest jar we released that is compatible with the
+    * current.
     */
   val unreleasedModules = Set[String]()
 
@@ -115,10 +121,10 @@ object AlgebirdBuild extends Build {
     id = "algebird",
     base = file("."),
     settings = sharedSettings ++ DocGen.publishSettings
-    ).settings(
-    test := { },
-    publish := { }, // skip publishing for this root project.
-    publishLocal := { }
+  ).settings(
+    test := {},
+    publish := {}, // skip publishing for this root project.
+    publishLocal := {}
   ).aggregate(
     algebirdTest,
     algebirdCore,
@@ -130,58 +136,83 @@ object AlgebirdBuild extends Build {
 
   def module(name: String) = {
     val id = "algebird-%s".format(name)
-    Project(id = id, base = file(id), settings = sharedSettings ++ Seq(
-      Keys.name := id,
-      previousArtifact := youngestForwardCompatible(name))
+    Project(
+      id = id,
+      base = file(id),
+      settings = sharedSettings ++ Seq(
+        Keys.name := id,
+        previousArtifact := youngestForwardCompatible(name)
+      )
     )
   }
 
   lazy val algebirdCore = module("core").settings(
-    test := { }, // All tests reside in algebirdTest
+    test := {}, // All tests reside in algebirdTest
     initialCommands := """
                        import com.twitter.algebird._
                        """.stripMargin('|'),
     libraryDependencies <++= (scalaVersion) { scalaVersion =>
-      Seq("com.googlecode.javaewah" % "JavaEWAH" % "0.6.6",
-          "org.scala-lang" % "scala-reflect" % scalaVersion) ++ {
+      Seq(
+        "com.googlecode.javaewah" % "JavaEWAH" % "0.6.6",
+        "org.scala-lang" % "scala-reflect" % scalaVersion
+      ) ++ {
         if (isScala210x(scalaVersion))
           Seq("org.scalamacros" %% "quasiquotes" % quasiquotesVersion)
         else
           Seq()
       }
     },
-    sourceGenerators in Compile <+= sourceManaged in Compile map { outDir: File =>
-      GenTupleAggregators.gen(outDir)
-    }, addCompilerPlugin("org.scalamacros" % "paradise" % paradiseVersion cross CrossVersion.full)
+    sourceGenerators in Compile <+= sourceManaged in Compile map {
+      outDir: File =>
+        GenTupleAggregators.gen(outDir)
+    },
+    addCompilerPlugin(
+      "org.scalamacros" % "paradise" % paradiseVersion cross CrossVersion.full
+    )
   )
 
-  lazy val algebirdTest = module("test").settings(
-    libraryDependencies <++= (scalaVersion) { scalaVersion =>
-      Seq("org.scalacheck" %% "scalacheck" % "1.12.4",
-          "org.scalatest" %% "scalatest" % "2.2.4") ++ {
-        if (isScala210x(scalaVersion))
-          Seq("org.scalamacros" %% "quasiquotes" % quasiquotesVersion)
-        else
-          Seq()
-      }
-    }, addCompilerPlugin("org.scalamacros" % "paradise" % paradiseVersion cross CrossVersion.full)
-  ).dependsOn(algebirdCore)
+  lazy val algebirdTest = module("test")
+    .settings(
+      libraryDependencies <++= (scalaVersion) { scalaVersion =>
+        Seq(
+          "org.scalacheck" %% "scalacheck" % "1.12.4",
+          "org.scalatest" %% "scalatest" % "2.2.4"
+        ) ++ {
+          if (isScala210x(scalaVersion))
+            Seq("org.scalamacros" %% "quasiquotes" % quasiquotesVersion)
+          else
+            Seq()
+        }
+      },
+      addCompilerPlugin(
+        "org.scalamacros" % "paradise" % paradiseVersion cross CrossVersion.full
+      )
+    )
+    .dependsOn(algebirdCore)
 
-  lazy val algebirdBenchmark = module("benchmark").settings(JmhPlugin.projectSettings:_*).settings(
-     libraryDependencies ++= Seq("com.twitter" %% "bijection-core" % "0.8.0")
-  ).dependsOn(algebirdCore, algebirdUtil, algebirdTest % "test->compile").enablePlugins(JmhPlugin)
+  lazy val algebirdBenchmark = module("benchmark")
+    .settings(JmhPlugin.projectSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq("com.twitter" %% "bijection-core" % "0.8.0")
+    )
+    .dependsOn(algebirdCore, algebirdUtil, algebirdTest % "test->compile")
+    .enablePlugins(JmhPlugin)
 
-  lazy val algebirdUtil = module("util").settings(
-    libraryDependencies += "com.twitter" %% "util-core" % "6.20.0"
-  ).dependsOn(algebirdCore, algebirdTest % "test->test")
+  lazy val algebirdUtil = module("util")
+    .settings(
+      libraryDependencies += "com.twitter" %% "util-core" % "6.20.0"
+    )
+    .dependsOn(algebirdCore, algebirdTest % "test->test")
 
-  lazy val algebirdBijection = module("bijection").settings(
-    libraryDependencies += "com.twitter" %% "bijection-core" % "0.8.0"
-  ).dependsOn(algebirdCore, algebirdTest % "test->test")
+  lazy val algebirdBijection = module("bijection")
+    .settings(
+      libraryDependencies += "com.twitter" %% "bijection-core" % "0.8.0"
+    )
+    .dependsOn(algebirdCore, algebirdTest % "test->test")
 
-  lazy val algebirdSpark = module("spark").settings(
-    libraryDependencies += "org.apache.spark" %% "spark-core" % "1.3.0" % "provided"
-  ).dependsOn(algebirdCore, algebirdTest % "test->test")
+  lazy val algebirdSpark = module("spark")
+    .settings(
+      libraryDependencies += "org.apache.spark" %% "spark-core" % "1.3.0" % "provided"
+    )
+    .dependsOn(algebirdCore, algebirdTest % "test->test")
 }
-
-

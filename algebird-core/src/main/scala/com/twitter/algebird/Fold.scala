@@ -248,7 +248,7 @@ object Fold {
     )
 
   /** An even simpler Fold that collects into a Seq. Shorthand for "container[I,
-    * Seq];" fewer type arguments, better type inferrence.
+    * Seq];" fewer type arguments, better type inference.
     */
   def seq[I]: Fold[I, Seq[I]] =
     container[I, Seq]

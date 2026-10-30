@@ -18,10 +18,11 @@ package com.twitter.algebird.util
 
 import com.twitter.algebird.CheckProperties
 import com.twitter.algebird.MonadLaws.monadLaws
-import com.twitter.util.{ Await, Future, Return, Try }
+import com.twitter.util.{Await, Future, Return, Try}
 import org.scalacheck.Arbitrary
 
 class UtilAlgebraProperties extends CheckProperties {
+
   import com.twitter.algebird.util.UtilAlgebras._
 
   def toOption[T](f: Future[T]): Option[T] =

@@ -6,27 +6,31 @@ import scala.reflect.runtime.universe._
 
 import com.twitter.algebird._
 
-import org.scalacheck.{ Gen, Arbitrary }
+import org.scalacheck.{Gen, Arbitrary}
 
 object ArbitraryCaseClassMacro {
-  def caseClassGen[T](c: Context)(implicit T: c.WeakTypeTag[T]): c.Expr[Gen[T]] = {
+
+  def caseClassGen[T](
+      c: Context
+  )(implicit T: c.WeakTypeTag[T]): c.Expr[Gen[T]] = {
     import c.universe._
 
     val tpe = weakTypeOf[T]
 
-    val isCaseClass = tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass
+    val isCaseClass =
+      tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass
     if (!isCaseClass)
       c.abort(c.enclosingPosition, s"$T is not a clase class")
 
     val params = getParams(c)
     val types = getParamTypes(c)
 
-    val getsList = params.zip(types).map {
-      case (param, t) =>
-        fq"${param.name} <- _root_.org.scalacheck.Arbitrary.arbitrary[$t]"
+    val getsList = params.zip(types).map { case (param, t) =>
+      fq"${param.name} <- _root_.org.scalacheck.Arbitrary.arbitrary[$t]"
     }
 
-    val paramsList = params.map(param => q"${param.name.asInstanceOf[TermName]}")
+    val paramsList =
+      params.map(param => q"${param.name.asInstanceOf[TermName]}")
     val companion = tpe.typeSymbol.companionSymbol
 
     val res = q"""
@@ -36,7 +40,9 @@ object ArbitraryCaseClassMacro {
     c.Expr[Gen[T]](res)
   }
 
-  def caseClassArbitrary[T](c: Context)(implicit T: c.WeakTypeTag[T]): c.Expr[Arbitrary[T]] = {
+  def caseClassArbitrary[T](
+      c: Context
+  )(implicit T: c.WeakTypeTag[T]): c.Expr[Arbitrary[T]] = {
     import c.universe._
 
     val gen = caseClassGen(c)(T)

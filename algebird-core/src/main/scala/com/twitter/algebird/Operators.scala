@@ -12,10 +12,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 package com.twitter.algebird
 
 object Operators {
+
   implicit def toPlus[T: Semigroup](t: T) = new PlusOp(t)
   implicit def toMinus[T: Group](t: T) = new MinusOp(t)
   implicit def toTimes[T: Ring](t: T) = new TimesOp(t)
@@ -40,6 +41,7 @@ class DivOp[T: Field](t: T) {
 }
 
 class RichTraversable[T](t: TraversableOnce[T]) {
+
   def sumByKey[K, V](implicit ev: <:<[T, (K, V)], sg: Semigroup[V]): Map[K, V] =
     MapAlgebra.sumByKey(t.map { _.asInstanceOf[(K, V)] })
 

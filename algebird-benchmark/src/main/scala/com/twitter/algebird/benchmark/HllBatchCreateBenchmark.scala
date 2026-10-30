@@ -6,6 +6,7 @@ import com.twitter.algebird.HyperLogLogMonoid
 import com.twitter.bijection._
 
 object HllBatchCreateBenchmark {
+
   val byteEncoder = implicitly[Injection[Long, Array[Byte]]]
   val byteEncoderFn = byteEncoder.toFunction
 
@@ -32,6 +33,7 @@ object HllBatchCreateBenchmark {
 }
 
 class HllBatchCreateBenchmark {
+
   import HllBatchCreateBenchmark._
 
   @Benchmark

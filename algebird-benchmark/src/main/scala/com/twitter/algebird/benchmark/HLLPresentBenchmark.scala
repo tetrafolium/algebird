@@ -1,6 +1,6 @@
 package com.twitter.algebird.benchmark
 
-import com.twitter.algebird.{ HyperLogLogMonoid, HLL, SparseHLL, DenseHLL }
+import com.twitter.algebird.{HyperLogLogMonoid, HLL, SparseHLL, DenseHLL}
 import com.twitter.bijection._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
@@ -8,6 +8,7 @@ import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 
 object HLLPresentBenchmark {
+
   implicit val byteEncoder = implicitly[Injection[Long, Array[Byte]]]
 
   @State(Scope.Benchmark)
@@ -36,13 +37,14 @@ object HLLPresentBenchmark {
 }
 
 class HLLPresentBenchmark {
+
   import HLLPresentBenchmark._
 
-  //don't cache the lazy values
+  // don't cache the lazy values
   def clone(hll: HLL): HLL = {
     hll match {
       case SparseHLL(bits, maxRhow) => SparseHLL(bits, maxRhow)
-      case DenseHLL(bits, v) => DenseHLL(bits, v)
+      case DenseHLL(bits, v)        => DenseHLL(bits, v)
     }
   }
 

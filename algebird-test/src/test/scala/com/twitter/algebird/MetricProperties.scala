@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+ */
 
 package com.twitter.algebird
 
@@ -20,6 +20,7 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Prop._
 
 class BaseMetricProperties extends CheckProperties with MetricProperties {
+
   property("double metric") {
     metricLaws[Double](defaultEqFn)
   }
@@ -63,9 +64,9 @@ class BaseMetricProperties extends CheckProperties with MetricProperties {
     (a.keySet ++ b.keySet).forall { key =>
       (a.get(key), b.get(key)) match {
         case (Some(aVal), Some(bVal)) => aVal == bVal
-        case (Some(aVal), None) => aVal == 0.0
-        case (None, Some(bVal)) => bVal == 0.0
-        case _ => true
+        case (Some(aVal), None)       => aVal == 0.0
+        case (None, Some(bVal))       => bVal == 0.0
+        case _                        => true
       }
     }
   }
@@ -77,27 +78,37 @@ class BaseMetricProperties extends CheckProperties with MetricProperties {
 }
 
 trait MetricProperties {
+
   def isNonNegative[T: Metric: Arbitrary] = forAll { (a: T, b: T) =>
     val m = Metric(a, b)
     beGreaterThan(m, 0.0) || beCloseTo(m, 0.0)
   }
-  def isEqualIffZero[T: Metric: Arbitrary](eqfn: (T, T) => Boolean) = forAll { (a: T, b: T) =>
-    if (eqfn(a, b)) beCloseTo(Metric(a, b), 0.0) else !beCloseTo(Metric(a, b), 0.0)
+  def isEqualIffZero[T: Metric: Arbitrary](eqfn: (T, T) => Boolean) = forAll {
+    (a: T, b: T) =>
+      if (eqfn(a, b)) beCloseTo(Metric(a, b), 0.0)
+      else !beCloseTo(Metric(a, b), 0.0)
   }
   def isSymmetric[T: Metric: Arbitrary] = forAll { (a: T, b: T) =>
     beCloseTo(Metric(a, b), Metric(b, a))
   }
-  def satisfiesTriangleInequality[T: Metric: Arbitrary] = forAll { (a: T, b: T, c: T) =>
-    val m1 = Metric(a, b) + Metric(b, c)
-    val m2 = Metric(a, c)
-    beGreaterThan(m1, m2) || beCloseTo(m1, m2)
+  def satisfiesTriangleInequality[T: Metric: Arbitrary] = forAll {
+    (a: T, b: T, c: T) =>
+      val m1 = Metric(a, b) + Metric(b, c)
+      val m2 = Metric(a, c)
+      beGreaterThan(m1, m2) || beCloseTo(m1, m2)
   }
 
   def metricLaws[T: Metric: Arbitrary](eqfn: (T, T) => Boolean) =
-    isNonNegative[T] && isEqualIffZero[T](eqfn) && isSymmetric[T] && satisfiesTriangleInequality[T]
+    isNonNegative[T] && isEqualIffZero[T](eqfn) && isSymmetric[
+      T
+    ] && satisfiesTriangleInequality[T]
 
   // TODO: these are copied elsewhere in the tests. Move them to a common place
-  def beCloseTo(a: Double, b: Double, eps: Double = 1e-10) = a == b || (math.abs(a - b) / math.abs(a)) < eps || (a.isInfinite && b.isInfinite)
-  def beGreaterThan(a: Double, b: Double, eps: Double = 1e-10) = a > b - eps || (a.isInfinite && b.isInfinite)
+  def beCloseTo(a: Double, b: Double, eps: Double = 1e-10) =
+    a == b || (math.abs(a - b) / math.abs(
+      a
+    )) < eps || (a.isInfinite && b.isInfinite)
+  def beGreaterThan(a: Double, b: Double, eps: Double = 1e-10) =
+    a > b - eps || (a.isInfinite && b.isInfinite)
   def defaultEqFn[T](a: T, b: T): Boolean = a == b
 }

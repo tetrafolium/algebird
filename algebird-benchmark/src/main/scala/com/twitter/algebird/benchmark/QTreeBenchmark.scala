@@ -10,6 +10,7 @@ object QTreeBenchmark {
 
   @State(Scope.Benchmark)
   class QTreeState {
+
     var qtreeUnit: QTreeSemigroup[Unit] = _
 
     var qtreeLong: QTreeSemigroup[Long] = _
@@ -62,6 +63,7 @@ object QTreeBenchmark {
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @BenchmarkMode(Array(Mode.AverageTime))
 class QTreeBenchmark {
+
   import QTreeBenchmark._
   @Benchmark
   def timeSumOptionUnit(state: QTreeState) = {

@@ -4,10 +4,11 @@ import com.twitter.algebird._
 import com.twitter.algebird.macros.caseclass._
 import com.twitter.algebird.macros.ArbitraryCaseClassMacro.arbitrary
 
-import org.scalacheck.{ Properties, Arbitrary }
+import org.scalacheck.{Properties, Arbitrary}
 import org.scalacheck.Prop.forAll
 
 object CaseClassMacrosTest extends Properties("Case class macros") {
+
   import BaseProperties._
 
   implicit val arbitraryFoo: Arbitrary[Foo] = arbitrary[Foo]

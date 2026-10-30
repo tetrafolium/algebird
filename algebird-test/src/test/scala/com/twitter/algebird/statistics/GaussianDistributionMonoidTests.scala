@@ -1,10 +1,11 @@
 package com.twitter.algebird.statistics
 
 import com.twitter.algebird.CheckProperties
-import org.scalacheck.{ Arbitrary, Gen }
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest._
 
 class GaussianDistributionMonoidTests extends CheckProperties {
+
   import com.twitter.algebird.BaseProperties._
 
   implicit val gaussianGenerators = Arbitrary {
